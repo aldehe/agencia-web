@@ -7,23 +7,19 @@ export default async function handler(req) {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🚀 ANALYZE REQUEST STARTED');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📥 Raw URL param:', url);
 
   if (!url) {
-    console.log('❌ ERROR: No URL provided');
     return new Response(JSON.stringify({ error: 'URL requerida' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 
-  // Normalize URL
   let targetUrl = url;
   if (!/^https?:\/\//i.test(targetUrl)) targetUrl = 'https://' + targetUrl;
-  console.log('🔗 Normalized URL:', targetUrl);
+  console.log('🔗 Target URL:', targetUrl);
 
   const hostname = (() => { try { return new URL(targetUrl).origin; } catch(e) { return null; }})();
-  console.log('🏠 Hostname/Origin:', hostname);
 
   const results = {
     url: targetUrl,
@@ -34,7 +30,7 @@ export default async function handler(req) {
     sitemap: null,
     llms_txt: null,
     errors: [],
-    debug_log: [] // log visible en la respuesta JSON
+    debug_log: []
   };
 
   const log = (msg) => {
@@ -42,309 +38,326 @@ export default async function handler(req) {
     results.debug_log.push(`${new Date().toISOString().split('T')[1].split('.')[0]} ${msg}`);
   };
 
+  // ─────────────────────────────────────────────────────
+  // HELPER: detect if HTML is JS-rendered
+  // ─────────────────────────────────────────────────────
+  function isJsRendered(html) {
+    const h = html.toLowerCase();
+    const hasH1 = h.includes('<h1');
+    const bodyContent = (html.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || '').length;
+    const hasMinContent = bodyContent > 5000;
+    const isNextJs = h.includes('__next') || h.includes('_next');
+    const isReact = h.includes('react') || h.includes('__react');
+    const isNuxt = h.includes('__nuxt') || h.includes('_nuxt');
+    const isAngular = h.includes('ng-version') || h.includes('ng-app');
+
+    log(`   🔎 JS Framework detection:`);
+    log(`      hasH1: ${hasH1}, bodyContent: ${bodyContent} chars`);
+    log(`      Next.js: ${isNextJs}, React: ${isReact}, Nuxt: ${isNuxt}, Angular: ${isAngular}`);
+
+    const likelyJsRendered = !hasH1 || !hasMinContent || isNextJs || isNuxt || isAngular;
+    return likelyJsRendered;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // HELPER: extract all data from HTML string
+  // ─────────────────────────────────────────────────────
+  function extractFromHtml(html, source) {
+    log(`🔬 Extracting data from HTML (source: ${source}, size: ${html.length} chars)...`);
+    const h = html.toLowerCase();
+
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : null;
+    log(`   📌 Title: "${title || 'NOT FOUND'}" (${title?.length || 0} chars)`);
+
+    const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+    const metaDesc = metaDescMatch ? metaDescMatch[1].trim() : null;
+    log(`   📌 Meta desc: ${metaDesc ? metaDesc.substring(0,60)+'...' : 'NOT FOUND'} (${metaDesc?.length||0} chars)`);
+
+    const h1s = [...html.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => m[1].replace(/<[^>]+>/g,'').trim()).filter(Boolean);
+    const h2s = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map(m => m[1].replace(/<[^>]+>/g,'').trim()).filter(Boolean);
+    const h3s = [...html.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)].map(m => m[1].replace(/<[^>]+>/g,'').trim()).filter(Boolean);
+    log(`   📌 H1 (${h1s.length}): ${h1s.length ? '"'+h1s[0].substring(0,60)+'"' : 'NOT FOUND'}`);
+    log(`   📌 H2 (${h2s.length}): ${h2s.slice(0,3).map(h=>`"${h.substring(0,30)}"`).join(', ')}`);
+    log(`   📌 H3 count: ${h3s.length}`);
+
+    const canonicalMatch = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)
+      || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i);
+    const canonical = canonicalMatch ? canonicalMatch[1].trim() : null;
+    log(`   📌 Canonical: ${canonical || 'NOT FOUND'}`);
+
+    const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1]
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i)?.[1] || null;
+    const ogDesc  = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)?.[1]
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)?.[1] || null;
+    const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1]
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] || null;
+    log(`   📌 OG: title=${ogTitle?'✓':'✗'} desc=${ogDesc?'✓':'✗'} image=${ogImage?'✓':'✗'}`);
+
+    const twitterCard = html.match(/<meta[^>]+name=["']twitter:card["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
+    log(`   📌 Twitter Card: ${twitterCard || 'NOT FOUND'}`);
+
+    const hreflangs = [...html.matchAll(/<link[^>]+rel=["']alternate["'][^>]+hreflang=["']([^"']+)["']/gi)].map(m => m[1]);
+    log(`   📌 Hreflang: ${hreflangs.length ? hreflangs.join(', ') : 'NONE'}`);
+
+    const schemaBlocks = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+    log(`   📌 Schema blocks: ${schemaBlocks.length}`);
+    const schemas = [];
+    for (const [i, block] of schemaBlocks.entries()) {
+      try {
+        const parsed = JSON.parse(block[1]);
+        schemas.push(parsed);
+        const type = parsed['@type'] || (parsed['@graph'] ? parsed['@graph'].map(g=>g['@type']).join('+') : 'unknown');
+        log(`      Schema ${i+1}: @type = ${type}`);
+      } catch(e) {
+        log(`      Schema ${i+1}: INVALID JSON`);
+      }
+    }
+    const schemaTypes = schemas.flatMap(s => {
+      if (Array.isArray(s['@graph'])) return s['@graph'].map(g => g['@type']);
+      return [s['@type']];
+    }).filter(Boolean);
+    log(`   📌 Schema types: ${schemaTypes.join(', ') || 'NONE'}`);
+
+    const microdataTypes = [...html.matchAll(/itemtype=["']https?:\/\/schema\.org\/([^"']+)["']/gi)].map(m => m[1]);
+
+    const allImgs = [...html.matchAll(/<img[^>]+>/gi)];
+    const imgsWithoutAlt = allImgs.filter(m => !m[0].toLowerCase().includes('alt=')).length;
+    log(`   📌 Images: ${allImgs.length} total, ${imgsWithoutAlt} without alt`);
+
+    const hasViewport = h.includes('name="viewport"') || h.includes("name='viewport'");
+    const hasCharset  = h.includes('charset=');
+    const hasHTTPS    = targetUrl.startsWith('https://');
+    const robotsMeta  = html.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
+
+    const internalLinks = [...html.matchAll(/href=["']\/[^"']+["']/gi)].length;
+    const externalLinks = [...html.matchAll(/href=["']https?:\/\/[^"']+["']/gi)].length;
+
+    return {
+      source,
+      title: { value: title, length: title?.length||0, ok: !!title && title.length>=10 && title.length<=70 },
+      meta_description: { value: metaDesc, length: metaDesc?.length||0, ok: !!metaDesc && metaDesc.length>=50 && metaDesc.length<=165 },
+      headings: { h1: h1s, h2: h2s, h3: h3s, h1_count: h1s.length, h2_count: h2s.length, h3_count: h3s.length, ok: h1s.length===1 },
+      canonical: { value: canonical, ok: !!canonical },
+      open_graph: { title: ogTitle, description: ogDesc, image: ogImage, ok: !!(ogTitle&&ogDesc&&ogImage) },
+      twitter_card: { value: twitterCard, ok: !!twitterCard },
+      hreflang: { values: hreflangs, count: hreflangs.length, ok: hreflangs.length>0 },
+      schema: {
+        blocks: schemas,
+        types: schemaTypes,
+        microdata_types: microdataTypes,
+        has_schema: schemas.length>0 || microdataTypes.length>0,
+        has_organization: schemaTypes.some(t => ['Organization','LocalBusiness'].includes(t)),
+        has_faq: schemaTypes.includes('FAQPage'),
+        has_breadcrumb: schemaTypes.includes('BreadcrumbList'),
+        has_article: schemaTypes.some(t => ['Article','BlogPosting'].includes(t)),
+        has_local_business: schemaTypes.includes('LocalBusiness'),
+        has_product: schemaTypes.includes('Product'),
+        has_website: schemaTypes.includes('WebSite'),
+      },
+      technical: { has_viewport: hasViewport, has_charset: hasCharset, robots_meta: robotsMeta, https: hasHTTPS },
+      images: { total: allImgs.length, without_alt: imgsWithoutAlt, ok: imgsWithoutAlt===0 },
+      links: { internal: internalLinks, external: externalLinks },
+      html_length: html.length,
+    };
+  }
+
   try {
 
     // ─────────────────────────────────────────────────
-    // 1. PAGESPEED MOBILE + DESKTOP
+    // 1. PAGESPEED
     // ─────────────────────────────────────────────────
-    log('📊 STEP 1: Calling Google PageSpeed API...');
+    log('📊 STEP 1: Google PageSpeed API...');
     const apiKey = typeof process !== 'undefined' && process.env?.PAGESPEED_API_KEY
       ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
-    log(`🔑 API Key present: ${!!apiKey}`);
+    log(`🔑 API Key: ${apiKey ? 'YES' : 'NO — using shared quota'}`);
 
     const psBase = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
-    const cats = 'category=performance&category=seo&category=accessibility&category=best-practices';
-    const mobileUrl  = `${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=mobile&${cats}${apiKey}`;
-    const desktopUrl = `${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=desktop&${cats}${apiKey}`;
+    const cats   = 'category=performance&category=seo&category=accessibility&category=best-practices';
 
-    log(`📱 Fetching PageSpeed MOBILE...`);
-    const psStart = Date.now();
-
-    const [psMobileRes, psDesktopRes] = await Promise.allSettled([
-      fetch(mobileUrl).then(r => {
-        log(`📱 PageSpeed mobile HTTP status: ${r.status}`);
-        return r.json();
+    const [psMob, psDesk] = await Promise.allSettled([
+      fetch(`${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=mobile&${cats}${apiKey}`).then(r=>{
+        log(`   📱 Mobile HTTP ${r.status}`); return r.json();
       }),
-      fetch(desktopUrl).then(r => {
-        log(`🖥 PageSpeed desktop HTTP status: ${r.status}`);
-        return r.json();
+      fetch(`${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=desktop&${cats}${apiKey}`).then(r=>{
+        log(`   🖥 Desktop HTTP ${r.status}`); return r.json();
       })
     ]);
 
-    log(`⏱ PageSpeed took: ${Date.now() - psStart}ms`);
-
-    if (psMobileRes.status === 'fulfilled') {
-      results.pagespeed.mobile = psMobileRes.value;
-      const mob = psMobileRes.value;
-      const perfScore = mob?.lighthouseResult?.categories?.performance?.score;
-      const seoScore  = mob?.lighthouseResult?.categories?.seo?.score;
-      log(`✅ Mobile PageSpeed OK — Performance: ${Math.round((perfScore||0)*100)}/100, SEO: ${Math.round((seoScore||0)*100)}/100`);
-
-      // Log key audits
-      const audits = mob?.lighthouseResult?.audits || {};
-      log(`   🔍 LCP: ${audits['largest-contentful-paint']?.displayValue || 'N/A'} (score: ${audits['largest-contentful-paint']?.score})`);
-      log(`   🔍 FCP: ${audits['first-contentful-paint']?.displayValue || 'N/A'} (score: ${audits['first-contentful-paint']?.score})`);
-      log(`   🔍 CLS: ${audits['cumulative-layout-shift']?.displayValue || 'N/A'} (score: ${audits['cumulative-layout-shift']?.score})`);
-      log(`   🔍 TBT: ${audits['total-blocking-time']?.displayValue || 'N/A'} (score: ${audits['total-blocking-time']?.score})`);
-      log(`   🔍 Title audit: ${audits['document-title']?.score}`);
-      log(`   🔍 Meta desc audit: ${audits['meta-description']?.score}`);
-      log(`   🔍 Viewport audit: ${audits['viewport']?.score}`);
-      log(`   🔍 HTTPS audit: ${audits['is-on-https']?.score}`);
-      log(`   🔍 Image alt audit: ${audits['image-alt']?.score}`);
-      log(`   🔍 Mobile friendly: ${audits['content-width']?.score}`);
+    if (psMob.status==='fulfilled' && !psMob.value?.error) {
+      results.pagespeed.mobile = psMob.value;
+      const perf = Math.round((psMob.value?.lighthouseResult?.categories?.performance?.score||0)*100);
+      const seo  = Math.round((psMob.value?.lighthouseResult?.categories?.seo?.score||0)*100);
+      const audits = psMob.value?.lighthouseResult?.audits || {};
+      log(`   ✅ Mobile OK — Perf: ${perf}, SEO: ${seo}`);
+      log(`      LCP: ${audits['largest-contentful-paint']?.displayValue||'N/A'}`);
+      log(`      FCP: ${audits['first-contentful-paint']?.displayValue||'N/A'}`);
+      log(`      CLS: ${audits['cumulative-layout-shift']?.displayValue||'N/A'}`);
+      log(`      TBT: ${audits['total-blocking-time']?.displayValue||'N/A'}`);
     } else {
-      log(`❌ Mobile PageSpeed FAILED: ${psMobileRes.reason}`);
-      results.errors.push('PageSpeed mobile failed: ' + psMobileRes.reason);
+      const errMsg = psMob.value?.error?.message || psMob.reason || 'unknown';
+      log(`   ❌ Mobile FAILED: ${errMsg}`);
+      results.errors.push('PageSpeed mobile: ' + errMsg);
     }
 
-    if (psDesktopRes.status === 'fulfilled') {
-      results.pagespeed.desktop = psDesktopRes.value;
-      const desk = psDesktopRes.value;
-      const perfScore = desk?.lighthouseResult?.categories?.performance?.score;
-      log(`✅ Desktop PageSpeed OK — Performance: ${Math.round((perfScore||0)*100)}/100`);
+    if (psDesk.status==='fulfilled' && !psDesk.value?.error) {
+      results.pagespeed.desktop = psDesk.value;
+      const perf = Math.round((psDesk.value?.lighthouseResult?.categories?.performance?.score||0)*100);
+      log(`   ✅ Desktop OK — Perf: ${perf}`);
     } else {
-      log(`❌ Desktop PageSpeed FAILED: ${psDesktopRes.reason}`);
+      log(`   ❌ Desktop FAILED`);
     }
 
     // ─────────────────────────────────────────────────
-    // 2. FETCH HTML
+    // 2. FETCH HTML (normal)
     // ─────────────────────────────────────────────────
     log('');
-    log('🌐 STEP 2: Fetching HTML from target URL...');
+    log('🌐 STEP 2: Fetching HTML (normal fetch)...');
     let html = '';
-    let htmlFetchStatus = null;
+    let htmlSource = 'direct';
 
     try {
-      const htmlStart = Date.now();
-      const htmlRes = await fetch(targetUrl, {
+      const t0 = Date.now();
+      const res = await fetch(targetUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; AnalyzerBot/1.0)',
           'Accept': 'text/html,application/xhtml+xml',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
         },
         signal: AbortSignal.timeout(8000)
       });
-      htmlFetchStatus = htmlRes.status;
-      log(`📄 HTML fetch HTTP status: ${htmlRes.status}`);
-      log(`📄 Content-Type: ${htmlRes.headers.get('content-type')}`);
-      log(`📄 X-Robots-Tag: ${htmlRes.headers.get('x-robots-tag') || 'none'}`);
-
-      html = await htmlRes.text();
-      log(`📄 HTML size: ${html.length} chars (${Math.round(html.length/1024)}KB) — took ${Date.now()-htmlStart}ms`);
-
-      if (html.length < 100) {
-        log(`⚠️ WARNING: HTML very short (${html.length} chars) — possible JS-rendered page or block`);
-      }
+      log(`   HTTP ${res.status} — ${res.headers.get('content-type')}`);
+      html = await res.text();
+      log(`   Size: ${html.length} chars (${Math.round(html.length/1024)}KB) in ${Date.now()-t0}ms`);
     } catch(e) {
-      log(`❌ HTML fetch FAILED: ${e.message}`);
-      results.errors.push('HTML fetch failed: ' + e.message);
+      log(`   ❌ Direct fetch failed: ${e.message}`);
+      results.errors.push('Direct fetch: ' + e.message);
     }
 
     // ─────────────────────────────────────────────────
-    // 3. ANALYZE HTML
+    // 3. JINA AI FALLBACK (if JS-rendered)
     // ─────────────────────────────────────────────────
-    if (html) {
-      log('');
-      log('🔬 STEP 3: Analyzing HTML content...');
-      const h = html.toLowerCase();
+    log('');
+    log('🔎 STEP 3: Checking if JS-rendered...');
 
-      // Title
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const title = titleMatch ? titleMatch[1].trim() : null;
-      log(`   📌 Title: "${title || 'NOT FOUND'}" (${title?.length || 0} chars)`);
+    if (html && isJsRendered(html)) {
+      log('⚡ JS-rendered detected — trying Jina AI Reader...');
+      try {
+        const jinaUrl = `https://r.jina.ai/${targetUrl}`;
+        log(`   Fetching: ${jinaUrl}`);
+        const t0 = Date.now();
+        const jinaRes = await fetch(jinaUrl, {
+          headers: {
+            'Accept': 'text/html',
+            'X-Return-Format': 'html',
+          },
+          signal: AbortSignal.timeout(15000)
+        });
+        log(`   Jina HTTP ${jinaRes.status} in ${Date.now()-t0}ms`);
 
-      // Meta description
-      const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
-      const metaDesc = metaDescMatch ? metaDescMatch[1].trim() : null;
-      log(`   📌 Meta description: "${metaDesc ? metaDesc.substring(0,60)+'...' : 'NOT FOUND'}" (${metaDesc?.length || 0} chars)`);
+        if (jinaRes.ok) {
+          const jinaHtml = await jinaRes.text();
+          log(`   Jina response size: ${jinaHtml.length} chars`);
 
-      // Headings
-      const h1s = [...html.matchAll(/<h1[^>]*>([^<]+)<\/h1>/gi)].map(m => m[1].trim());
-      const h2s = [...html.matchAll(/<h2[^>]*>([^<]+)<\/h2>/gi)].map(m => m[1].trim());
-      const h3s = [...html.matchAll(/<h3[^>]*>([^<]+)<\/h3>/gi)].map(m => m[1].trim());
-      log(`   📌 H1 (${h1s.length}): ${h1s.length ? '"' + h1s[0].substring(0,50) + '"' : 'NOT FOUND'}`);
-      log(`   📌 H2 count: ${h2s.length}`);
-      log(`   📌 H3 count: ${h3s.length}`);
+          // Check if Jina gave us better H1 data
+          const jinaH1s = [...jinaHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)].map(m=>m[1].replace(/<[^>]+>/g,'').trim()).filter(Boolean);
+          log(`   Jina H1s found: ${jinaH1s.length} — ${jinaH1s[0]||'none'}`);
 
-      // Canonical
-      const canonicalMatch = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)
-        || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i);
-      const canonical = canonicalMatch ? canonicalMatch[1].trim() : null;
-      log(`   📌 Canonical: ${canonical || 'NOT FOUND'}`);
-
-      // Open Graph
-      const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
-      const ogDesc  = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
-      const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
-      log(`   📌 OG Title: ${ogTitle ? '"'+ogTitle.substring(0,40)+'"' : 'NOT FOUND'}`);
-      log(`   📌 OG Description: ${ogDesc ? 'FOUND' : 'NOT FOUND'}`);
-      log(`   📌 OG Image: ${ogImage ? 'FOUND' : 'NOT FOUND'}`);
-
-      // Twitter Card
-      const twitterCard = html.match(/<meta[^>]+name=["']twitter:card["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
-      log(`   📌 Twitter Card: ${twitterCard || 'NOT FOUND'}`);
-
-      // Hreflang
-      const hreflangs = [...html.matchAll(/<link[^>]+rel=["']alternate["'][^>]+hreflang=["']([^"']+)["']/gi)].map(m => m[1]);
-      log(`   📌 Hreflang langs: ${hreflangs.length ? hreflangs.join(', ') : 'NONE'}`);
-
-      // Schema
-      const schemaBlocks = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
-      log(`   📌 Schema blocks found: ${schemaBlocks.length}`);
-      const schemas = [];
-      for (const [i, block] of schemaBlocks.entries()) {
-        try {
-          const parsed = JSON.parse(block[1]);
-          schemas.push(parsed);
-          const type = parsed['@type'] || (parsed['@graph'] ? parsed['@graph'].map(g=>g['@type']).join('+') : 'unknown');
-          log(`   📌 Schema block ${i+1}: @type = ${type}`);
-        } catch(e) {
-          log(`   ⚠️ Schema block ${i+1}: INVALID JSON — ${e.message}`);
+          if (jinaH1s.length > 0 || jinaHtml.length > html.length) {
+            log(`   ✅ Jina gave better data — using Jina HTML`);
+            html = jinaHtml;
+            htmlSource = 'jina_ai';
+          } else {
+            log(`   ℹ️ Jina didn't improve — keeping direct HTML`);
+          }
+        } else {
+          log(`   ❌ Jina failed: ${jinaRes.status}`);
         }
+      } catch(e) {
+        log(`   ❌ Jina error: ${e.message}`);
       }
-      const schemaTypes = schemas.flatMap(s => {
-        if (Array.isArray(s['@graph'])) return s['@graph'].map(g => g['@type']);
-        return [s['@type']];
-      }).filter(Boolean);
-      log(`   📌 Schema types detected: ${schemaTypes.join(', ') || 'NONE'}`);
+    } else if (html) {
+      log('✅ HTML looks static — no Jina needed');
+    }
 
-      // Microdata
-      const microdataTypes = [...html.matchAll(/itemtype=["']https?:\/\/schema\.org\/([^"']+)["']/gi)].map(m => m[1]);
-      if (microdataTypes.length) log(`   📌 Microdata types: ${microdataTypes.join(', ')}`);
-
-      // Images
-      const allImgs = [...html.matchAll(/<img[^>]+>/gi)];
-      const imgsWithoutAlt = allImgs.filter(m => !m[0].includes('alt=')).length;
-      log(`   📌 Images: ${allImgs.length} total, ${imgsWithoutAlt} without alt`);
-
-      // Technical
-      const hasViewport = h.includes('name="viewport"') || h.includes("name='viewport'");
-      const hasCharset  = h.includes('charset=');
-      const hasHTTPS    = targetUrl.startsWith('https://');
-      const robotsMeta  = html.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']+)["']/i)?.[1] || null;
-      log(`   📌 HTTPS: ${hasHTTPS}`);
-      log(`   📌 Viewport: ${hasViewport}`);
-      log(`   📌 Charset: ${hasCharset}`);
-      log(`   📌 Robots meta: ${robotsMeta || 'none'}`);
-
-      // Links
-      const internalLinks = [...html.matchAll(/href=["']\/[^"']+["']/gi)].length;
-      const externalLinks = [...html.matchAll(/href=["']https?:\/\/[^"']+["']/gi)].length;
-      log(`   📌 Links: ${internalLinks} internal, ${externalLinks} external`);
-
-      results.html_analysis = {
-        title: { value: title, length: title?.length||0, ok: !!title && title.length>=10 && title.length<=70 },
-        meta_description: { value: metaDesc, length: metaDesc?.length||0, ok: !!metaDesc && metaDesc.length>=50 && metaDesc.length<=165 },
-        headings: { h1: h1s, h2: h2s, h3: h3s, h1_count: h1s.length, h2_count: h2s.length, h3_count: h3s.length, ok: h1s.length===1 },
-        canonical: { value: canonical, ok: !!canonical },
-        open_graph: { title: ogTitle, description: ogDesc, image: ogImage, ok: !!(ogTitle&&ogDesc&&ogImage) },
-        twitter_card: { value: twitterCard, ok: !!twitterCard },
-        hreflang: { values: hreflangs, count: hreflangs.length, ok: hreflangs.length>0 },
-        schema: {
-          blocks: schemas,
-          types: schemaTypes,
-          microdata_types: microdataTypes,
-          has_schema: schemas.length>0 || microdataTypes.length>0,
-          has_organization: schemaTypes.some(t => ['Organization','LocalBusiness'].includes(t)),
-          has_faq: schemaTypes.includes('FAQPage'),
-          has_breadcrumb: schemaTypes.includes('BreadcrumbList'),
-          has_article: schemaTypes.some(t => ['Article','BlogPosting'].includes(t)),
-          has_local_business: schemaTypes.includes('LocalBusiness'),
-          has_product: schemaTypes.includes('Product'),
-          has_website: schemaTypes.includes('WebSite'),
-        },
-        technical: { has_viewport: hasViewport, has_charset: hasCharset, robots_meta: robotsMeta, https: hasHTTPS },
-        images: { total: allImgs.length, without_alt: imgsWithoutAlt, ok: imgsWithoutAlt===0 },
-        links: { internal: internalLinks, external: externalLinks },
-        html_length: html.length,
-        fetch_status: htmlFetchStatus
-      };
-
-      log(`✅ HTML analysis complete`);
+    // ─────────────────────────────────────────────────
+    // 4. EXTRACT FROM HTML
+    // ─────────────────────────────────────────────────
+    log('');
+    log(`🔬 STEP 4: Extracting data (source: ${htmlSource})...`);
+    if (html) {
+      results.html_analysis = extractFromHtml(html, htmlSource);
+      results.html_analysis.fetch_status = 200;
     } else {
-      log(`⚠️ STEP 3 SKIPPED: No HTML available`);
+      log('⚠️ No HTML — skipping extraction');
     }
 
     // ─────────────────────────────────────────────────
-    // 4. ROBOTS.TXT
+    // 5. ROBOTS.TXT
     // ─────────────────────────────────────────────────
     log('');
-    log('🤖 STEP 4: Fetching robots.txt...');
+    log('🤖 STEP 5: robots.txt...');
     try {
-      const robotsUrl = `${hostname}/robots.txt`;
-      log(`   Fetching: ${robotsUrl}`);
-      const robotsRes = await fetch(robotsUrl, { signal: AbortSignal.timeout(5000) });
-      log(`   robots.txt HTTP status: ${robotsRes.status}`);
-      if (robotsRes.ok) {
-        const robotsTxt = await robotsRes.text();
-        const hasSitemap = robotsTxt.toLowerCase().includes('sitemap:');
-        const blocksAll  = robotsTxt.includes('User-agent: *') && robotsTxt.includes('Disallow: /');
-        log(`   ✅ robots.txt found (${robotsTxt.length} chars)`);
-        log(`   📌 Has sitemap declaration: ${hasSitemap}`);
-        log(`   📌 Blocks all crawlers: ${blocksAll}`);
-        log(`   📌 First 200 chars: ${robotsTxt.substring(0,200).replace(/\n/g,' | ')}`);
-        results.robots = { exists: true, content: robotsTxt.substring(0,2000), has_sitemap: hasSitemap, blocks_all: blocksAll };
+      const res = await fetch(`${hostname}/robots.txt`, { signal: AbortSignal.timeout(5000) });
+      log(`   HTTP ${res.status}`);
+      if (res.ok) {
+        const txt = await res.text();
+        results.robots = {
+          exists: true, content: txt.substring(0,2000),
+          has_sitemap: txt.toLowerCase().includes('sitemap:'),
+          blocks_all: txt.includes('User-agent: *') && txt.includes('Disallow: /')
+        };
+        log(`   ✅ Found (${txt.length} chars) — sitemap: ${results.robots.has_sitemap}`);
       } else {
-        log(`   ❌ robots.txt not found (${robotsRes.status})`);
-        results.robots = { exists: false, status: robotsRes.status };
+        results.robots = { exists: false, status: res.status };
+        log(`   ❌ Not found (${res.status})`);
       }
     } catch(e) {
-      log(`   ❌ robots.txt fetch error: ${e.message}`);
       results.robots = { exists: false, error: e.message };
+      log(`   ❌ Error: ${e.message}`);
     }
 
     // ─────────────────────────────────────────────────
-    // 5. SITEMAP.XML
+    // 6. SITEMAP.XML
     // ─────────────────────────────────────────────────
     log('');
-    log('🗺 STEP 5: Fetching sitemap.xml...');
+    log('🗺 STEP 6: sitemap.xml...');
     try {
-      const sitemapUrl = `${hostname}/sitemap.xml`;
-      log(`   Fetching: ${sitemapUrl}`);
-      const sitemapRes = await fetch(sitemapUrl, { signal: AbortSignal.timeout(5000) });
-      log(`   sitemap.xml HTTP status: ${sitemapRes.status}`);
-      if (sitemapRes.ok) {
-        const sitemapTxt = await sitemapRes.text();
-        const urlCount   = (sitemapTxt.match(/<url>/gi)||[]).length;
-        const hasImages  = sitemapTxt.includes('image:image');
-        const isSitemapIndex = sitemapTxt.includes('<sitemapindex');
-        log(`   ✅ sitemap.xml found (${sitemapTxt.length} chars)`);
-        log(`   📌 URL entries: ${urlCount}`);
-        log(`   📌 Is sitemap index: ${isSitemapIndex}`);
-        log(`   📌 Has image sitemap: ${hasImages}`);
-        results.sitemap = { exists: true, url_count: urlCount, has_images: hasImages, is_index: isSitemapIndex };
+      const res = await fetch(`${hostname}/sitemap.xml`, { signal: AbortSignal.timeout(5000) });
+      log(`   HTTP ${res.status}`);
+      if (res.ok) {
+        const txt = await res.text();
+        const urlCount = (txt.match(/<url>/gi)||[]).length;
+        results.sitemap = { exists: true, url_count: urlCount, has_images: txt.includes('image:image'), is_index: txt.includes('<sitemapindex') };
+        log(`   ✅ Found — ${urlCount} URLs, index: ${results.sitemap.is_index}`);
       } else {
-        log(`   ❌ sitemap.xml not found (${sitemapRes.status})`);
-        results.sitemap = { exists: false, status: sitemapRes.status };
+        results.sitemap = { exists: false, status: res.status };
+        log(`   ❌ Not found (${res.status})`);
       }
     } catch(e) {
-      log(`   ❌ sitemap.xml fetch error: ${e.message}`);
       results.sitemap = { exists: false, error: e.message };
+      log(`   ❌ Error: ${e.message}`);
     }
 
     // ─────────────────────────────────────────────────
-    // 6. LLMS.TXT
+    // 7. LLMS.TXT
     // ─────────────────────────────────────────────────
     log('');
-    log('🤖 STEP 6: Fetching llms.txt...');
+    log('🤖 STEP 7: llms.txt...');
     try {
-      const llmsUrl = `${hostname}/llms.txt`;
-      log(`   Fetching: ${llmsUrl}`);
-      const llmsRes = await fetch(llmsUrl, { signal: AbortSignal.timeout(5000) });
-      log(`   llms.txt HTTP status: ${llmsRes.status}`);
-      if (llmsRes.ok) {
-        const llmsTxt = await llmsRes.text();
-        log(`   ✅ llms.txt found (${llmsTxt.length} chars)`);
-        log(`   📌 Preview: ${llmsTxt.substring(0,100).replace(/\n/g,' | ')}`);
-        results.llms_txt = { exists: true, content: llmsTxt.substring(0,1000) };
+      const res = await fetch(`${hostname}/llms.txt`, { signal: AbortSignal.timeout(5000) });
+      log(`   HTTP ${res.status}`);
+      if (res.ok) {
+        const txt = await res.text();
+        results.llms_txt = { exists: true, content: txt.substring(0,1000) };
+        log(`   ✅ Found (${txt.length} chars)`);
       } else {
-        log(`   ❌ llms.txt not found (${llmsRes.status})`);
-        results.llms_txt = { exists: false, status: llmsRes.status };
+        results.llms_txt = { exists: false, status: res.status };
+        log(`   ❌ Not found (${res.status})`);
       }
     } catch(e) {
-      log(`   ❌ llms.txt fetch error: ${e.message}`);
       results.llms_txt = { exists: false };
+      log(`   ❌ Error: ${e.message}`);
     }
 
     // ─────────────────────────────────────────────────
@@ -352,21 +365,22 @@ export default async function handler(req) {
     // ─────────────────────────────────────────────────
     log('');
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    log('📋 ANALYSIS COMPLETE — SUMMARY');
+    log('📋 SUMMARY');
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    log(`✅ PageSpeed mobile: ${results.pagespeed.mobile ? 'OK' : 'FAILED'}`);
-    log(`✅ PageSpeed desktop: ${results.pagespeed.desktop ? 'OK' : 'FAILED'}`);
-    log(`✅ HTML analyzed: ${results.html_analysis ? 'OK (' + results.html_analysis.html_length + ' chars)' : 'FAILED'}`);
-    log(`✅ robots.txt: ${results.robots?.exists ? 'FOUND' : 'NOT FOUND'}`);
-    log(`✅ sitemap.xml: ${results.sitemap?.exists ? 'FOUND (' + results.sitemap.url_count + ' URLs)' : 'NOT FOUND'}`);
-    log(`✅ llms.txt: ${results.llms_txt?.exists ? 'FOUND' : 'NOT FOUND'}`);
-    log(`⚠️ Errors: ${results.errors.length}`);
-    if (results.errors.length) results.errors.forEach(e => log(`   - ${e}`));
+    log(`PageSpeed mobile:  ${results.pagespeed.mobile ? '✅' : '❌'}`);
+    log(`PageSpeed desktop: ${results.pagespeed.desktop ? '✅' : '❌'}`);
+    log(`HTML source:       ${results.html_analysis?.source || '❌'} (${results.html_analysis?.html_length||0} chars)`);
+    log(`H1 found:          ${results.html_analysis?.headings?.h1_count||0}`);
+    log(`Schema types:      ${results.html_analysis?.schema?.types?.join(', ') || 'none'}`);
+    log(`robots.txt:        ${results.robots?.exists ? '✅' : '❌'}`);
+    log(`sitemap.xml:       ${results.sitemap?.exists ? '✅ ('+results.sitemap.url_count+' URLs)' : '❌'}`);
+    log(`llms.txt:          ${results.llms_txt?.exists ? '✅' : '❌'}`);
+    log(`Errors:            ${results.errors.length}`);
+    results.errors.forEach(e => log(`  - ${e}`));
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   } catch(err) {
-    log(`💥 FATAL ERROR: ${err.message}`);
-    log(`Stack: ${err.stack}`);
+    log(`💥 FATAL: ${err.message}`);
     results.errors.push('Fatal: ' + err.message);
   }
 
