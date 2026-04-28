@@ -1,0 +1,20 @@
+# Agency — Revenue Operations & Analytics
+
+> Agencia especializada en Revenue Operations, Analytics y Automatización con IA para empresas B2B en España y Latam.
+
+## Servicios
+
+- CRM & Revenue Operations: Implantación y optimización de HubSpot, Pipedrive y Salesforce
+- Analytics & BI: Dashboards ejecutivos en Power BI, GA4 avanzado y arquitectura de datos en Supabase
+- IA & Automatización: Agentes con LLMs, flujos Make/n8n e integraciones API
+- SEO/AEO/GEO: Posicionamiento técnico en buscadores y motores de IA
+- Paid Media: Google Ads, Meta Ads y LinkedIn Ads conectados a CRM
+
+## Mercado
+
+España y Latinoamérica. Especialistas en PYMEs de 10-250 empleados.
+
+## Contacto
+
+- Email: hola@agencia.ai
+- Web: https://agencia.ai

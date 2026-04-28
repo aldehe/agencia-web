@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analizador Web — SEO · AEO · GEO · Velocidad</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B1220;--bg2:#111827;--bg3:#0F1A2E;--bg4:#162035;--ind:#4F46E5;--ind2:#6366F1;--ind3:#818CF8;--lime:#A3E635;--lime2:#BEF264;--red:#EF4444;--amber:#F59E0B;--green:#22C55E;--white:#FFFFFF;--gray:#94A3B8;--gray2:#64748B;--bord:rgba(255,255,255,0.07);--px:clamp(2rem,6vw,5rem);--fh:'General Sans',sans-serif;--fm:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:var(--fh);min-height:100vh}
+
+header{padding:1.2rem var(--px);border-bottom:1px solid var(--bord);display:flex;align-items:center;justify-content:space-between;background:rgba(11,18,32,.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo svg{width:28px;height:28px}
+.logo-wm{font-size:16px;font-weight:700;color:var(--white)}
+.logo-wm b{color:var(--ind3)}
+.back-link{font-size:13px;color:var(--gray);text-decoration:none;display:flex;align-items:center;gap:6px}
+.back-link:hover{color:var(--white)}
+
+/* INPUT */
+.input-section{padding:2.5rem var(--px) 1.5rem;background:var(--bg2);border-bottom:1px solid var(--bord)}
+.input-title{font-size:1.3rem;font-weight:700;letter-spacing:-.5px;margin-bottom:.4rem}
+.input-sub{font-size:13px;color:var(--gray);font-weight:300;margin-bottom:1.2rem}
+.input-row{display:flex;gap:10px;max-width:680px}
+.url-inp{flex:1;background:var(--bg3);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:12px 16px;font-size:14px;color:var(--white);font-family:var(--fh);outline:none;transition:border-color .18s}
+.url-inp:focus{border-color:var(--ind2)}
+.url-inp::placeholder{color:var(--gray2)}
+.analyze-btn{background:var(--ind);color:var(--white);border:none;border-radius:9px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fh);white-space:nowrap;display:flex;align-items:center;gap:8px;transition:background .18s}
+.analyze-btn:hover{background:var(--ind2)}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed}
+.analyze-btn .spin{animation:spin .8s linear infinite;display:none}
+.analyze-btn.loading .spin{display:inline}
+.analyze-btn.loading .ico{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOADING */
+.loading-section{display:none;padding:3rem var(--px)}
+.loading-section.active{display:block}
+.loading-steps-list{max-width:500px;display:flex;flex-direction:column;gap:10px;margin-top:1.5rem}
+.load-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);font-family:var(--fm)}
+.load-step.active{color:var(--ind3)}
+.load-step.done{color:var(--green)}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--gray2);flex-shrink:0}
+.load-step.active .step-dot{background:var(--ind3);animation:p .8s ease-in-out infinite}
+.load-step.done .step-dot{background:var(--green)}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ERROR */
+.error-section{display:none;padding:2rem var(--px)}
+.error-section.active{display:block}
+.error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:1.2rem 1.5rem;font-size:13px;color:var(--red)}
+
+/* RESULTS */
+.results-section{display:none;padding:2rem var(--px) 4rem}
+.results-section.active{display:block}
+
+/* SCORE OVERVIEW */
+.score-overview{background:var(--bg2);border:1px solid var(--bord);border-radius:20px;padding:2rem;margin-bottom:1.5rem;display:grid;grid-template-columns:130px 1fr;gap:2.5rem;align-items:center}
+.ring-wrap{position:relative;width:130px;height:130px}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:10}
+.ring-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.2rem;font-weight:700;font-family:var(--fm);line-height:1}
+.ring-label{text-align:center;font-size:11px;color:var(--gray);margin-top:4px}
+.overview-right{}
+.overview-url{font-family:var(--fm);font-size:12px;color:var(--ind3);margin-bottom:.5rem;word-break:break-all}
+.overview-verdict{font-size:1.1rem;font-weight:600;margin-bottom:.4rem}
+.overview-summary{font-size:13px;color:var(--gray);line-height:1.65;font-weight:300;margin-bottom:1rem}
+.mini-scores{display:flex;gap:1.5rem;flex-wrap:wrap}
+.mini-s{text-align:center}
+.mini-v{font-family:var(--fm);font-size:1.1rem;font-weight:700;line-height:1;margin-bottom:3px}
+.mini-l{font-size:10px;color:var(--gray2)}
+
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{font-size:12px;font-weight:500;padding:7px 16px;border-radius:20px;border:1px solid var(--bord);background:transparent;color:var(--gray);cursor:pointer;transition:all .15s;font-family:var(--fh)}
+.tab:hover{color:var(--white);border-color:rgba(255,255,255,.2)}
+.tab.active{background:var(--ind);color:var(--white);border-color:var(--ind)}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:1.5rem}
+.card{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
+.card.g::before{background:var(--green)}
+.card.a::before{background:var(--amber)}
+.card.r::before{background:var(--red)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-name{font-size:13px;font-weight:600}
+.card-score{font-family:var(--fm);font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px}
+.sg{background:rgba(34,197,94,.12);color:var(--green)}
+.sa{background:rgba(245,158,11,.12);color:var(--amber)}
+.sr{background:rgba(239,68,68,.12);color:var(--red)}
+.bar-wrap{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.checks{display:flex;flex-direction:column;gap:6px}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5}
+.cdot{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
+.cok{background:rgba(34,197,94,.12);color:var(--green)}
+.cwarn{background:rgba(245,158,11,.12);color:var(--amber)}
+.cfail{background:rgba(239,68,68,.12);color:var(--red)}
+.ctext{color:var(--gray)}
+.ctext b{color:var(--white);font-weight:500}
+
+/* ISSUES */
+.issues-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:20px;margin-bottom:1.5rem}
+.issues-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.issue{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid var(--bord);margin-bottom:8px}
+.issue:last-child{margin-bottom:0}
+.iprio{font-family:var(--fm);font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;margin-top:2px}
+.ph{background:rgba(239,68,68,.12);color:var(--red)}
+.pm{background:rgba(245,158,11,.12);color:var(--amber)}
+.pl{background:rgba(34,197,94,.12);color:var(--green)}
+.itext{font-size:12px;color:var(--gray);line-height:1.5}
+.itext b{color:var(--white);font-weight:500;display:block;margin-bottom:2px}
+.icat{font-family:var(--fm);font-size:10px;color:var(--gray2);text-align:right;white-space:nowrap}
+
+/* RAW DATA */
+.raw-section{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:20px;margin-bottom:1.5rem}
+.raw-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.raw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.raw-item{background:rgba(255,255,255,.03);border:1px solid var(--bord);border-radius:8px;padding:12px}
+.raw-key{font-family:var(--fm);font-size:10px;color:var(--gray2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.raw-val{font-size:13px;color:var(--white);word-break:break-all;line-height:1.4}
+.raw-val.ok{color:var(--green)}
+.raw-val.fail{color:var(--red)}
+.raw-val.warn{color:var(--amber)}
+
+/* CTA */
+.results-cta{background:linear-gradient(135deg,rgba(79,70,229,.12),rgba(163,230,53,.04));border:1px solid rgba(99,102,241,.2);border-radius:16px;padding:2rem;text-align:center}
+.results-cta h3{font-size:1.2rem;font-weight:700;margin-bottom:.4rem}
+.results-cta p{color:var(--gray);font-size:13px;font-weight:300;margin-bottom:1.2rem}
+.cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-lime{background:var(--lime);color:var(--bg);font-size:13px;font-weight:700;padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-family:var(--fh);text-decoration:none;transition:background .18s}
+.btn-lime:hover{background:var(--lime2)}
+.btn-ghost{background:transparent;color:var(--white);font-size:13px;padding:11px 22px;border-radius:8px;border:1px solid rgba(255,255,255,.14);cursor:pointer;font-family:var(--fh);text-decoration:none}
+
+@media(max-width:700px){.score-overview{grid-template-columns:1fr;gap:1.5rem;text-align:center}.input-row{flex-direction:column}.analyze-btn{width:100%;justify-content:center}.cards-grid{grid-template-columns:1fr}.issue{grid-template-columns:auto 1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#4F46E5"/><path d="M7 22L12.5 12L17.5 18L21 13.5L25 16" stroke="#A3E635" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="9.5" r="3" fill="#A3E635"/></svg>
+    <span class="logo-wm">Agen<b>cia</b></span>
+  </a>
+  <a href="/" class="back-link">← Volver a la web</a>
+</header>
+
+<div class="input-section">
+  <div class="input-title">Analizador web gratuito</div>
+  <div class="input-sub">SEO · AEO · GEO · Velocidad · Schema · robots.txt · sitemap.xml · llms.txt</div>
+  <div class="input-row">
+    <input class="url-inp" type="url" id="urlInput" placeholder="https://tuempresa.com" autocomplete="off">
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+      <svg class="ico" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="white" stroke-width="1.5"/><path d="M9.5 9.5L12 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,.3)" stroke-width="2"/><path d="M7 2a5 5 0 015 5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      Analizar
+    </button>
+  </div>
+</div>
+
+<div class="loading-section" id="loadingSection">
+  <div style="font-size:14px;font-weight:500;color:var(--gray)">Analizando tu web...</div>
+  <div class="loading-steps-list" id="stepsList"></div>
+</div>
+
+<div class="error-section" id="errorSection">
+  <div class="error-box" id="errorBox"></div>
+</div>
+
+<div class="results-section" id="resultsSection"></div>
+
+<script>
+const STEPS = [
+  'Conectando con la web...',
+  'Ejecutando Google PageSpeed...',
+  'Analizando HTML y meta tags...',
+  'Verificando schema markup...',
+  'Comprobando robots.txt y sitemap...',
+  'Buscando llms.txt...',
+  'Calculando puntuaciones...'
+];
+
+let stepInterval;
+
+function showSteps() {
+  const list = document.getElementById('stepsList');
+  list.innerHTML = STEPS.map((s,i) => `
+    <div class="load-step" id="step${i}">
+      <div class="step-dot"></div>${s}
+    </div>`).join('');
+  let cur = 0;
+  document.getElementById('step0').classList.add('active');
+  stepInterval = setInterval(() => {
+    if (cur < STEPS.length - 1) {
+      document.getElementById('step' + cur).classList.remove('active');
+      document.getElementById('step' + cur).classList.add('done');
+      cur++;
+      document.getElementById('step' + cur).classList.add('active');
+    }
+  }, 1800);
+}
+
+function clearSteps() {
+  clearInterval(stepInterval);
+}
+
+function normalizeUrl(u) {
+  u = u.trim();
+  if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  return u;
+}
+
+function scoreColor(s) { return s >= 80 ? 'var(--green)' : s >= 50 ? 'var(--amber)' : 'var(--red)'; }
+function scoreClass(s) { return s >= 80 ? 'g' : s >= 50 ? 'a' : 'r'; }
+function badgeClass(s) { return s >= 80 ? 'sg' : s >= 50 ? 'sa' : 'sr'; }
+function dotClass(ok, warn) { return ok ? 'cok' : warn ? 'cwarn' : 'cfail'; }
+function dotChar(ok, warn) { return ok ? '✓' : warn ? '!' : '✕'; }
+function chk(ok, warn, html) {
+  return `<div class="chk"><div class="cdot ${dotClass(ok,warn)}">${dotChar(ok,warn)}</div><span class="ctext">${html}</span></div>`;
+}
+
+function getAudit(ps, id) { try { return ps.lighthouseResult.audits[id]; } catch(e) { return null; } }
+function auditOk(ps, id) { const a = getAudit(ps,id); return a ? (a.score===1||a.score===null) : false; }
+function auditScore(ps, id) { const a = getAudit(ps,id); return a ? (a.score||0) : 0; }
+function getCat(ps, cat) { try { return Math.round((ps.lighthouseResult.categories[cat]?.score||0)*100); } catch(e) { return 0; } }
+
+async function analyze() {
+  const raw = document.getElementById('urlInput').value;
+  if (!raw.trim()) return;
+  const url = normalizeUrl(raw);
+  const btn = document.getElementById('analyzeBtn');
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  document.getElementById('loadingSection').classList.add('active');
+  document.getElementById('errorSection').classList.remove('active');
+  document.getElementById('resultsSection').classList.remove('active');
+  document.getElementById('resultsSection').innerHTML = '';
+  showSteps();
+
+  try {
+    const res = await fetch('/api/analyze?url=' + encodeURIComponent(url));
+    if (!res.ok) throw new Error('Error del servidor: ' + res.status);
+    const data = await res.json();
+    clearSteps();
+    document.getElementById('loadingSection').classList.remove('active');
+    renderResults(data);
+  } catch(err) {
+    clearSteps();
+    document.getElementById('loadingSection').classList.remove('active');
+    document.getElementById('errorBox').textContent = 'Error al analizar: ' + err.message + '. Verifica que la URL sea válida.';
+    document.getElementById('errorSection').classList.add('active');
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+}
+
+function renderResults(d) {
+  const ps  = d.pagespeed?.mobile;
+  const psd = d.pagespeed?.desktop;
+  const ha  = d.html_analysis;
+  const rb  = d.robots;
+  const sm  = d.sitemap;
+  const ll  = d.llms_txt;
+
+  // ── Scores ──
+  const perfM   = ps  ? getCat(ps,  'performance') : 0;
+  const perfD   = psd ? getCat(psd, 'performance') : 0;
+  const seoLH   = ps  ? getCat(ps,  'seo')         : 0;
+  const a11y    = ps  ? getCat(ps,  'accessibility'): 0;
+  const bestP   = ps  ? getCat(ps,  'best-practices'):0;
+
+  // LH audits
+  const lcp     = getAudit(ps, 'largest-contentful-paint');
+  const cls     = getAudit(ps, 'cumulative-layout-shift');
+  const fcp     = getAudit(ps, 'first-contentful-paint');
+  const tbt     = getAudit(ps, 'total-blocking-time');
+  const lcpOk   = (lcp?.score||0) >= 0.9;
+  const clsOk   = (cls?.score||0) >= 0.9;
+  const fcpOk   = (fcp?.score||0) >= 0.9;
+  const tbtOk   = (tbt?.score||0) >= 0.9;
+  const noBlock = auditOk(ps, 'render-blocking-resources');
+  const imgOpt  = auditOk(ps, 'uses-optimized-images') || auditOk(ps, 'uses-webp-images');
+  const txtComp = auditOk(ps, 'uses-text-compression');
+  const mobileOk= auditOk(ps, 'viewport') && auditOk(ps, 'content-width');
+  const tapOk   = auditOk(ps, 'tap-targets');
+  const fontOk  = auditOk(ps, 'font-size');
+
+  // SEO score combining LH + HTML analysis
+  const seoChecks = [
+    ha?.technical?.https,
+    ha?.title?.ok,
+    ha?.meta_description?.ok,
+    ha?.headings?.ok,
+    ha?.canonical?.ok,
+    ha?.open_graph?.ok,
+    ha?.images?.ok,
+    !!(ha?.headings?.h2_count > 0)
+  ].filter(Boolean).length;
+  const seoScore = Math.round(seoLH * 0.5 + (seoChecks/8)*100*0.5);
+
+  // AEO score
+  const aeoChecks = [
+    ha?.schema?.has_schema,
+    ha?.schema?.has_organization,
+    ha?.schema?.has_faq,
+    ha?.schema?.has_breadcrumb,
+    ha?.schema?.has_article,
+    !!(ha?.headings?.h2_count > 1 && ha?.headings?.h3_count > 0),
+    ll?.exists
+  ].filter(Boolean).length;
+  const aeoScore = Math.round((aeoChecks/7)*100);
+
+  // GEO score
+  const geoChecks = [
+    ha?.schema?.has_local_business,
+    !!(ha?.schema?.types?.includes?.('Organization')),
+    ha?.hreflang?.ok,
+    rb?.exists,
+    sm?.exists
+  ].filter(Boolean).length;
+  const geoScore = Math.round((geoChecks/5)*100);
+
+  // Fund score
+  const fundChecks = [
+    ha?.technical?.https,
+    mobileOk,
+    ha?.technical?.has_viewport,
+    ha?.technical?.has_charset,
+    a11y >= 80,
+    tapOk,
+    fontOk
+  ].filter(Boolean).length;
+  const fundScore = Math.round((fundChecks/7)*100);
+
+  const global = Math.round(perfM*0.25 + seoScore*0.3 + aeoScore*0.2 + geoScore*0.1 + fundScore*0.15);
+  const gc = scoreColor(global);
+  const circ = 2 * Math.PI * 54;
+  const offset = circ - (global/100)*circ;
+  const verdict = global >= 80 ? '✦ Muy buena presencia digital' : global >= 60 ? '⚡ Presencia mejorable' : global >= 40 ? '⚠ Problemas importantes' : '✕ Presencia digital deficiente';
+
+  // ── Issues ──
+  const issues = [];
+  if (!ha?.technical?.https)        issues.push({p:'high',t:'Sin HTTPS',d:'Penalización directa de Google. Instala SSL.',cat:'SEO'});
+  if (!ha?.title?.ok)               issues.push({p:'high',t:'Title tag ausente o muy corto/largo',d:`Actual: "${ha?.title?.value||'ninguno'}" (${ha?.title?.length||0} chars). Objetivo: 10-70 chars.`,cat:'SEO'});
+  if (!ha?.meta_description?.ok)    issues.push({p:'high',t:'Meta description ausente o fuera de rango',d:`Actual: ${ha?.meta_description?.length||0} chars. Objetivo: 50-165 chars.`,cat:'SEO'});
+  if (ha?.headings?.h1_count !== 1) issues.push({p:'high',t:`H1 incorrecto (${ha?.headings?.h1_count||0} encontrados)`,d:'Debe haber exactamente 1 H1 por página.',cat:'SEO'});
+  if (!ha?.schema?.has_schema)      issues.push({p:'high',t:'Sin schema markup (JSON-LD)',d:'Los crawlers de IA no pueden leer tu contenido. Añade JSON-LD básico.',cat:'AEO'});
+  if (!ha?.schema?.has_organization)issues.push({p:'high',t:'Sin Organization schema',d:'No aparecerás en Knowledge Panel ni en respuestas de IA generativas.',cat:'AEO'});
+  if (!mobileOk)                    issues.push({p:'high',t:'No responsive / problemas mobile',d:'Google indexa en mobile-first. Crítico para rankings.',cat:'Core Web'});
+  if (!ha?.canonical?.ok)           issues.push({p:'med', t:'Sin canonical tag',d:'Riesgo de contenido duplicado y dilución de autoridad SEO.',cat:'SEO'});
+  if (!ha?.open_graph?.ok)          issues.push({p:'med', t:'Open Graph incompleto',d:`Falta: ${[!ha?.open_graph?.title&&'og:title',!ha?.open_graph?.description&&'og:description',!ha?.open_graph?.image&&'og:image'].filter(Boolean).join(', ')}`,cat:'Social'});
+  if (!ha?.schema?.has_faq)         issues.push({p:'med', t:'Sin FAQPage schema',d:'Pierdes featured snippets en Google y respuestas de ChatGPT/Gemini.',cat:'AEO'});
+  if (!ha?.schema?.has_local_business)issues.push({p:'med',t:'Sin LocalBusiness schema',d:'Imprescindible para aparecer en búsquedas locales y Google Maps.',cat:'GEO'});
+  if (!ha?.hreflang?.ok)            issues.push({p:'med', t:'Sin hreflang',d:'Si operas en España y Latam, el hreflang es imprescindible.',cat:'GEO'});
+  if (!lcpOk)                       issues.push({p:'med', t:`LCP lento: ${lcp?.displayValue||'?'}`,d:'Objetivo: <2.5s. Optimiza imágenes y elimina render-blocking.',cat:'Velocidad'});
+  if (!clsOk)                       issues.push({p:'med', t:`CLS inestable: ${cls?.displayValue||'?'}`,d:'La página se mueve al cargar. Mala UX y penalización Google.',cat:'Velocidad'});
+  if (!rb?.exists)                  issues.push({p:'med', t:'Sin robots.txt',d:'Crea un robots.txt para controlar la indexación.',cat:'SEO'});
+  if (!sm?.exists)                  issues.push({p:'med', t:'Sin sitemap.xml',d:'El sitemap ayuda a Google a descubrir e indexar todas tus páginas.',cat:'SEO'});
+  if (!ll?.exists)                  issues.push({p:'low', t:'Sin llms.txt',d:'Añade llms.txt para orientar a ChatGPT, Perplexity y Gemini.',cat:'AEO'});
+  if ((ha?.images?.without_alt||0)>0)issues.push({p:'low',t:`${ha.images.without_alt} imágenes sin alt text`,d:'El alt text es esencial para SEO y accesibilidad.',cat:'SEO'});
+  if (!imgOpt)                      issues.push({p:'low', t:'Imágenes sin optimizar',d:'Convierte a WebP/AVIF. Ahorra 30-50% de peso.',cat:'Velocidad'});
+  if (!txtComp)                     issues.push({p:'low', t:'Sin compresión de texto',d:'Activa gzip/brotli en el servidor.',cat:'Velocidad'});
+
+  const prioOrder = {high:0,med:1,low:2};
+  issues.sort((a,b) => prioOrder[a.p]-prioOrder[b.p]);
+
+  // ── HTML ──
+  const hostname = (() => { try { return new URL(d.url).hostname; } catch(e) { return d.url; }})();
+
+  const html = `
+  <div class="score-overview">
+    <div>
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ring-fill" cx="60" cy="60" r="54" stroke="${gc}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="ring-num" style="color:${gc}">${global}</div>
+      </div>
+      <div class="ring-label">Puntuación global</div>
+    </div>
+    <div class="overview-right">
+      <div class="overview-url">${hostname}</div>
+      <div class="overview-verdict" style="color:${gc}">${verdict}</div>
+      <div class="overview-summary">${issues.filter(i=>i.p==='high').length} problemas críticos · ${issues.filter(i=>i.p==='med').length} medios · ${issues.filter(i=>i.p==='low').length} menores detectados.</div>
+      <div class="mini-scores">
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(perfM)}">${perfM}</div><div class="mini-l">Velocidad</div></div>
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(seoScore)}">${seoScore}</div><div class="mini-l">SEO</div></div>
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(aeoScore)}">${aeoScore}</div><div class="mini-l">AEO</div></div>
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(geoScore)}">${geoScore}</div><div class="mini-l">GEO</div></div>
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(fundScore)}">${fundScore}</div><div class="mini-l">Fundamentos</div></div>
+        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(a11y)}">${a11y}</div><div class="mini-l">Accesibilidad</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('issues')">⚠ Problemas (${issues.length})</button>
+    <button class="tab" onclick="switchTab('speed')">⚡ Velocidad</button>
+    <button class="tab" onclick="switchTab('seo')">🔍 SEO</button>
+    <button class="tab" onclick="switchTab('aeo')">🤖 AEO</button>
+    <button class="tab" onclick="switchTab('geo')">📍 GEO</button>
+    <button class="tab" onclick="switchTab('raw')">📋 Datos raw</button>
+  </div>
+
+  <!-- ISSUES -->
+  <div class="panel active" id="panel-issues">
+    <div class="issues-wrap">
+      <div class="issues-title"><span style="color:var(--red)">⚠</span> ${issues.length} problemas ordenados por impacto</div>
+      ${issues.map(i=>`
+        <div class="issue">
+          <span class="iprio ${i.p==='high'?'ph':i.p==='med'?'pm':'pl'}">${i.p==='high'?'CRÍTICO':i.p==='med'?'MEDIO':'BAJO'}</span>
+          <div class="itext"><b>${i.t}</b>${i.d}</div>
+          <span class="icat">${i.cat}</span>
+        </div>`).join('')}
+    </div>
+    <div class="results-cta">
+      <h3>¿Quieres que lo arreglemos?</h3>
+      <p>Nuestro equipo soluciona todos estos problemas. Diagnóstico gratuito en 48h.</p>
+      <div class="cta-btns">
+        <a class="btn-lime" href="mailto:hola@agencia.ai?subject=Análisis web ${hostname}">Hablar con nosotros</a>
+        <a class="btn-ghost" href="/">Volver a la web</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPEED -->
+  <div class="panel" id="panel-speed">
+    <div class="cards-grid">
+      <div class="card ${scoreClass(perfM)}">
+        <div class="card-head"><span class="card-name">⚡ Velocidad Mobile</span><span class="card-score ${badgeClass(perfM)}">${perfM}/100</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${perfM}%;background:${scoreColor(perfM)}"></div></div>
+        <div class="checks">
+          ${chk(lcpOk, !lcpOk&&(lcp?.score||0)>=.5, `<b>LCP</b> ${lcp?.displayValue||'?'} ${lcpOk?'— excelente':'— objetivo &lt;2.5s'}`)}
+          ${chk(fcpOk, !fcpOk&&(fcp?.score||0)>=.5, `<b>FCP</b> ${fcp?.displayValue||'?'} ${fcpOk?'— rápido':'— objetivo &lt;1.8s'}`)}
+          ${chk(clsOk, !clsOk&&(cls?.score||0)>=.5, `<b>CLS</b> ${cls?.displayValue||'?'} ${clsOk?'— estable':'— inestabilidad visual'}`)}
+          ${chk(tbtOk, !tbtOk, `<b>TBT</b> ${tbt?.displayValue||'?'} ${tbtOk?'— bueno':'— JS bloqueante'}`)}
+          ${chk(noBlock, false, noBlock?'<b>Sin recursos bloqueantes</b>':'<b>Recursos bloqueantes</b> detectados')}
+          ${chk(imgOpt, true, imgOpt?'<b>Imágenes optimizadas</b>':'<b>Imágenes sin optimizar</b> — usar WebP')}
+          ${chk(txtComp, true, txtComp?'<b>Compresión activa</b> (gzip/brotli)':'<b>Sin compresión</b> de texto')}
+        </div>
+      </div>
+      <div class="card ${scoreClass(perfD)}">
+        <div class="card-head"><span class="card-name">🖥 Velocidad Desktop</span><span class="card-score ${badgeClass(perfD)}">${perfD}/100</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${perfD}%;background:${scoreColor(perfD)}"></div></div>
+        <div class="checks">
+          ${chk(perfD>=90,perfD>=50,`<b>Score Lighthouse</b> ${perfD}/100`)}
+          ${chk(a11y>=80,a11y>=50,`<b>Accesibilidad</b> ${a11y}/100`)}
+          ${chk(bestP>=80,bestP>=50,`<b>Best Practices</b> ${bestP}/100`)}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEO -->
+  <div class="panel" id="panel-seo">
+    <div class="cards-grid">
+      <div class="card ${scoreClass(seoScore)}">
+        <div class="card-head"><span class="card-name">🔍 SEO Técnico</span><span class="card-score ${badgeClass(seoScore)}">${seoScore}/100</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${seoScore}%;background:${scoreColor(seoScore)}"></div></div>
+        <div class="checks">
+          ${chk(ha?.technical?.https, false, ha?.technical?.https?'<b>HTTPS</b> activo':'<b>Sin HTTPS</b> — penalización crítica')}
+          ${chk(ha?.title?.ok, !ha?.title?.value, `<b>Title</b>: ${ha?.title?.value?`"${ha.title.value.substring(0,40)}${ha.title.value.length>40?'...':''}" (${ha.title.length} chars)`:'ausente'}`)}
+          ${chk(ha?.meta_description?.ok, !!ha?.meta_description?.value&&!ha?.meta_description?.ok, `<b>Meta description</b>: ${ha?.meta_description?.value?`${ha.meta_description.length} chars`:'ausente'}`)}
+          ${chk(ha?.headings?.h1_count===1, ha?.headings?.h1_count===0, `<b>H1</b>: ${ha?.headings?.h1_count||0} encontrados ${ha?.headings?.h1?`— "${ha.headings.h1[0]?.substring(0,30)}..."`:''}`)}
+          ${chk(ha?.headings?.h2_count>0, false, `<b>H2</b>: ${ha?.headings?.h2_count||0} · <b>H3</b>: ${ha?.headings?.h3_count||0}`)}
+          ${chk(ha?.canonical?.ok, false, ha?.canonical?.ok?`<b>Canonical</b>: ${ha.canonical.value?.substring(0,40)}...`:'<b>Sin canonical</b>')}
+          ${chk(ha?.open_graph?.ok, !!(ha?.open_graph?.title&&!ha?.open_graph?.image), `<b>Open Graph</b>: title ${ha?.open_graph?.title?'✓':'✕'} · desc ${ha?.open_graph?.description?'✓':'✕'} · image ${ha?.open_graph?.image?'✓':'✕'}`)}
+          ${chk(ha?.twitter_card?.ok, false, ha?.twitter_card?.ok?`<b>Twitter Card</b>: ${ha.twitter_card.value}`:'<b>Sin Twitter Card</b>')}
+          ${chk(ha?.images?.ok, (ha?.images?.without_alt||0)>0, `<b>Imágenes</b>: ${ha?.images?.total||0} total · ${ha?.images?.without_alt||0} sin alt`)}
+          ${chk(rb?.exists, false, rb?.exists?`<b>robots.txt</b> presente${rb.has_sitemap?' + sitemap declarado':''}`:' <b>Sin robots.txt</b>')}
+          ${chk(sm?.exists, false, sm?.exists?`<b>sitemap.xml</b>: ${sm.url_count||0} URLs indexadas`:'<b>Sin sitemap.xml</b>')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AEO -->
+  <div class="panel" id="panel-aeo">
+    <div class="cards-grid">
+      <div class="card ${scoreClass(aeoScore)}">
+        <div class="card-head"><span class="card-name">🤖 AEO — Motores IA</span><span class="card-score ${badgeClass(aeoScore)}">${aeoScore}/100</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${aeoScore}%;background:${scoreColor(aeoScore)}"></div></div>
+        <div class="checks">
+          ${chk(ha?.schema?.has_schema, false, ha?.schema?.has_schema?`<b>Schema markup</b> presente — tipos: ${ha.schema.types.slice(0,4).join(', ')||'detectados'}`:'<b>Sin schema markup</b> — invisible para crawlers IA')}
+          ${chk(ha?.schema?.has_organization, false, ha?.schema?.has_organization?'<b>Organization schema</b> ✓':'<b>Sin Organization schema</b> — no apareces en IA generativas')}
+          ${chk(ha?.schema?.has_faq, true, ha?.schema?.has_faq?'<b>FAQPage schema</b> ✓':'<b>Sin FAQPage</b> — sin featured snippets')}
+          ${chk(ha?.schema?.has_breadcrumb, true, ha?.schema?.has_breadcrumb?'<b>BreadcrumbList</b> ✓':'<b>Sin Breadcrumb schema</b>')}
+          ${chk(ha?.schema?.has_article, true, ha?.schema?.has_article?'<b>Article/BlogPosting</b> ✓':'<b>Sin Article schema</b>')}
+          ${chk(ha?.schema?.has_website, true, ha?.schema?.has_website?'<b>WebSite schema</b> ✓':'<b>Sin WebSite schema</b>')}
+          ${chk((ha?.headings?.h2_count||0)>1&&(ha?.headings?.h3_count||0)>0, false, `<b>Jerarquía semántica</b>: H2×${ha?.headings?.h2_count||0} H3×${ha?.headings?.h3_count||0}`)}
+          ${chk(ll?.exists, true, ll?.exists?'<b>llms.txt</b> presente ✓':'<b>Sin llms.txt</b> — ChatGPT/Perplexity sin orientación')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GEO -->
+  <div class="panel" id="panel-geo">
+    <div class="cards-grid">
+      <div class="card ${scoreClass(geoScore)}">
+        <div class="card-head"><span class="card-name">📍 GEO — Búsqueda Local</span><span class="card-score ${badgeClass(geoScore)}">${geoScore}/100</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${geoScore}%;background:${scoreColor(geoScore)}"></div></div>
+        <div class="checks">
+          ${chk(ha?.schema?.has_local_business, false, ha?.schema?.has_local_business?'<b>LocalBusiness schema</b> ✓':'<b>Sin LocalBusiness schema</b> — sin búsquedas locales')}
+          ${chk(!!(ha?.schema?.types?.includes?.('Organization')), true, `<b>Organization</b> ${ha?.schema?.types?.includes?.('Organization')?'✓':'✕'}`)}
+          ${chk(ha?.hreflang?.ok, true, ha?.hreflang?.ok?`<b>Hreflang</b>: ${ha.hreflang.values.join(', ')}`:'<b>Sin hreflang</b> — necesario para España+Latam')}
+          ${chk(rb?.exists, false, rb?.exists?'<b>robots.txt</b> ✓':'<b>Sin robots.txt</b>')}
+          ${chk(sm?.exists, false, sm?.exists?`<b>sitemap.xml</b> — ${sm.url_count||0} URLs`:'<b>Sin sitemap.xml</b>')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAW -->
+  <div class="panel" id="panel-raw">
+    <div class="raw-section">
+      <div class="raw-title">📋 Datos extraídos del HTML</div>
+      <div class="raw-grid">
+        <div class="raw-item"><div class="raw-key">Title</div><div class="raw-val ${ha?.title?.ok?'ok':ha?.title?.value?'warn':'fail'}">${ha?.title?.value||'— no encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">Meta description</div><div class="raw-val ${ha?.meta_description?.ok?'ok':ha?.meta_description?.value?'warn':'fail'}">${ha?.meta_description?.value?.substring(0,80)||'— no encontrada'}${(ha?.meta_description?.value?.length||0)>80?'...':''}</div></div>
+        <div class="raw-item"><div class="raw-key">Canonical</div><div class="raw-val ${ha?.canonical?.ok?'ok':'fail'}">${ha?.canonical?.value||'— no encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">Schema types</div><div class="raw-val ${ha?.schema?.types?.length?'ok':'fail'}">${ha?.schema?.types?.join(', ')||'— ninguno'}</div></div>
+        <div class="raw-item"><div class="raw-key">H1 (${ha?.headings?.h1_count||0})</div><div class="raw-val ${ha?.headings?.h1_count===1?'ok':'fail'}">${ha?.headings?.h1?.[0]||'— no encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">Hreflang langs</div><div class="raw-val ${ha?.hreflang?.ok?'ok':'warn'}">${ha?.hreflang?.values?.join(', ')||'— ninguno'}</div></div>
+        <div class="raw-item"><div class="raw-key">OG Title</div><div class="raw-val ${ha?.open_graph?.title?'ok':'fail'}">${ha?.open_graph?.title||'— no encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">OG Image</div><div class="raw-val ${ha?.open_graph?.image?'ok':'fail'}">${ha?.open_graph?.image?.substring(0,50)||'— no encontrada'}</div></div>
+        <div class="raw-item"><div class="raw-key">Twitter Card</div><div class="raw-val ${ha?.twitter_card?.value?'ok':'warn'}">${ha?.twitter_card?.value||'— no encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">robots.txt</div><div class="raw-val ${rb?.exists?'ok':'fail'}">${rb?.exists?'Presente':'No encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">sitemap.xml</div><div class="raw-val ${sm?.exists?'ok':'fail'}">${sm?.exists?`${sm.url_count||0} URLs`:'No encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">llms.txt</div><div class="raw-val ${ll?.exists?'ok':'warn'}">${ll?.exists?'Presente':'No encontrado'}</div></div>
+        <div class="raw-item"><div class="raw-key">Imágenes sin alt</div><div class="raw-val ${(ha?.images?.without_alt||0)===0?'ok':'fail'}">${ha?.images?.without_alt||0} de ${ha?.images?.total||0}</div></div>
+        <div class="raw-item"><div class="raw-key">Links internos</div><div class="raw-val">${ha?.links?.internal||0}</div></div>
+        <div class="raw-item"><div class="raw-key">Links externos</div><div class="raw-val">${ha?.links?.external||0}</div></div>
+        <div class="raw-item"><div class="raw-key">Robots meta</div><div class="raw-val">${ha?.technical?.robots_meta||'— no declarado'}</div></div>
+      </div>
+    </div>
+    ${ll?.exists&&ll?.content?`<div class="raw-section"><div class="raw-title">llms.txt contenido</div><pre style="font-family:var(--fm);font-size:11px;color:var(--gray);white-space:pre-wrap;line-height:1.6">${ll.content}</pre></div>`:''}
+  </div>
+  `;
+
+  document.getElementById('resultsSection').innerHTML = html;
+  document.getElementById('resultsSection').classList.add('active');
+  document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+// Pre-fill from URL params
+const params = new URLSearchParams(window.location.search);
+const preUrl = params.get('url');
+if (preUrl) {
+  document.getElementById('urlInput').value = preUrl;
+  analyze();
+}
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') analyze();
+});
+</script>
+</body>
+</html>

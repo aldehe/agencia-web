@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agencia — Revenue Operations & Analytics | España · Latam</title>
+<meta name="description" content="CRM avanzado, Analytics ejecutivo y Automatización con IA para empresas B2B. Resultados medibles desde el día 1. Barcelona · España · Latam.">
+<meta property="og:title" content="Agencia — Revenue Operations & Analytics">
+<meta property="og:description" content="CRM avanzado, Analytics ejecutivo y Automatización con IA. Resultados medibles desde el día 1.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://agencia.ai">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://agencia.ai">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Agencia",
+  "url": "https://agencia.ai",
+  "description": "Revenue Operations, Analytics y Automatización IA para empresas B2B",
+  "areaServed": ["España","México","Colombia","Argentina","Latam"],
+  "serviceType": ["CRM","Revenue Operations","Analytics","Marketing Automation","AI Automation"],
+  "address": { "@type": "PostalAddress", "addressLocality": "Barcelona", "addressCountry": "ES" },
+  "contactPoint": { "@type": "ContactPoint", "email": "hola@agencia.ai", "contactType": "sales" }
+}
+</script>
+<style>
+:root {
+  --bg:    #0B1220;
+  --bg2:   #111827;
+  --bg3:   #0F1A2E;
+  --bg4:   #162035;
+  --bg5:   #1C2B42;
+  --ind:   #4F46E5;
+  --ind2:  #6366F1;
+  --ind3:  #818CF8;
+  --lime:  #A3E635;
+  --lime2: #BEF264;
+  --white: #FFFFFF;
+  --gray:  #94A3B8;
+  --gray2: #64748B;
+  --bord:  rgba(255,255,255,0.07);
+  --px:    clamp(4rem,11vw,12rem);
+  --fh:    'General Sans', sans-serif;
+  --fm:    'JetBrains Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:var(--fh);font-size:16px;line-height:1.65;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;inset:0 0 auto 0;z-index:100;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--px);background:rgba(11,18,32,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--bord)}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.logo svg{width:32px;height:32px;flex-shrink:0}
+.logo-wm{font-size:19px;font-weight:700;color:var(--white);letter-spacing:-.4px}
+.logo-wm b{color:var(--ind3)}
+.nav-ul{display:flex;align-items:center;gap:2.4rem;list-style:none}
+.nav-ul a{color:var(--gray);font-size:14px;font-weight:400;text-decoration:none;transition:color .18s}
+.nav-ul a:hover{color:var(--white)}
+.nav-cta{background:var(--ind)!important;color:var(--white)!important;font-size:13px!important;font-weight:600!important;padding:8px 22px!important;border-radius:8px!important;transition:background .18s!important}
+.nav-cta:hover{background:var(--ind2)!important}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1.6fr 1fr;align-items:center;gap:4rem;padding:120px var(--px) 80px;background:var(--bg);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(79,70,229,.13) 0%,transparent 65%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-100px;left:10%;width:480px;height:360px;background:radial-gradient(ellipse,rgba(163,230,53,.05) 0%,transparent 65%);pointer-events:none}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(79,70,229,.12);border:1px solid rgba(99,102,241,.25);padding:5px 14px;border-radius:30px;font-size:11px;font-weight:600;color:var(--ind3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2rem}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--lime);animation:p 2s ease-in-out infinite}
+@keyframes p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+h1{font-size:clamp(2.6rem,4.4vw,4.2rem);font-weight:700;line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.4rem}
+h1 .lime{color:var(--lime)}
+h1 .ind{color:var(--ind3)}
+.hero-sub{font-size:1.05rem;color:var(--gray);line-height:1.8;max-width:460px;margin-bottom:2.4rem;font-weight:300}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.8rem}
+.bp{background:var(--ind);color:var(--white);font-size:14px;font-weight:600;padding:13px 28px;border-radius:9px;text-decoration:none;border:none;cursor:pointer;transition:background .18s,transform .12s}
+.bp:hover{background:var(--ind2);transform:translateY(-2px)}
+.bo{background:transparent;color:var(--white);font-size:14px;font-weight:400;padding:13px 24px;border-radius:9px;border:1px solid rgba(255,255,255,.14);text-decoration:none;cursor:pointer;transition:border-color .18s,transform .12s}
+.bo:hover{border-color:rgba(255,255,255,.34);transform:translateY(-2px)}
+.kpis{display:flex;gap:2.5rem}
+.kv{font-size:1.9rem;font-weight:700;letter-spacing:-1px;line-height:1;margin-bottom:5px}
+.kl{font-size:12px;color:var(--gray);line-height:1.4;font-weight:300}
+
+/* DASHBOARD */
+.hero-visual{position:relative}
+.dash{background:var(--bg4);border:1px solid rgba(255,255,255,.09);border-radius:18px;overflow:hidden;position:relative}
+.dash::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ind),var(--lime))}
+.dbar{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bord)}
+.dtitle{font-size:12px;font-weight:600;color:var(--white)}
+.dots{display:flex;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%}
+.dbody{padding:18px}
+.mets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.met{background:rgba(255,255,255,.04);border:1px solid var(--bord);border-radius:10px;padding:12px}
+.mv{font-size:1.25rem;font-weight:700;margin-bottom:3px;line-height:1}
+.ml{font-size:10px;color:var(--gray)}
+.cw{background:rgba(255,255,255,.02);border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:12px}
+.cl{font-size:10px;color:var(--gray2);margin-bottom:10px;font-family:var(--fm)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:54px}
+.b{flex:1;border-radius:4px 4px 0 0;background:rgba(79,70,229,.2)}
+.b.on{background:var(--ind)}
+.b.hi{background:var(--lime)}
+.pl{display:flex;flex-direction:column;gap:8px}
+.pr{display:flex;align-items:center;gap:10px}
+.pn{font-size:11px;color:var(--gray);width:76px;font-family:var(--fm)}
+.pt{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px}
+.pp{font-size:11px;font-weight:600;color:var(--white);width:34px;text-align:right;font-family:var(--fm)}
+.badge{position:absolute;background:var(--bg5);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.badge.tr{top:-18px;right:-24px;border-color:rgba(163,230,53,.2)}
+.badge.bl{bottom:28px;left:-24px;border-color:rgba(99,102,241,.2)}
+.bdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bm{font-size:12px;font-weight:600;color:var(--white)}
+.bs2{font-size:10px;color:var(--gray);font-family:var(--fm)}
+
+/* STRIP */
+.strip{padding:1.5rem var(--px);background:var(--bg2);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
+.sl{font-size:12px;color:var(--gray2);white-space:nowrap;font-weight:300}
+.si{display:flex;gap:2.8rem;flex-wrap:wrap}
+.si span{font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.04em}
+
+/* SECTIONS */
+.ey{font-family:var(--fm);font-size:11px;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.9rem}
+.sh{font-size:clamp(1.9rem,3.5vw,3rem);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:1rem}
+.ss{font-size:1rem;color:var(--gray);max-width:500px;line-height:1.75;font-weight:300;margin-bottom:3rem}
+
+/* SERVICES */
+.services{padding:clamp(4.5rem,8vw,8rem) var(--px);background:var(--bg3)}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.sc{background:var(--bg4);border:1px solid var(--bord);border-radius:16px;padding:28px 26px;transition:border-color .22s,transform .18s;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to top,rgba(79,70,229,.04),transparent);pointer-events:none}
+.sc:hover{border-color:rgba(99,102,241,.35);transform:translateY(-3px)}
+.sn{font-family:var(--fm);font-size:10px;color:var(--ind3);letter-spacing:.1em;margin-bottom:14px}
+.ico{width:44px;height:44px;border-radius:11px;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.st{font-size:1.1rem;font-weight:600;margin-bottom:10px}
+.sd{font-size:13.5px;color:var(--gray);line-height:1.65;margin-bottom:16px;font-weight:300}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.05);color:var(--gray)}
+
+/* ANALYZER CTA SECTION */
+.analyzer-section{padding:clamp(4rem,7vw,7rem) var(--px);background:var(--bg2);border-top:1px solid var(--bord)}
+.analyzer-card{background:var(--bg3);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:clamp(2rem,4vw,3.5rem);display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;position:relative;overflow:hidden}
+.analyzer-card::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(79,70,229,.08) 0%,transparent 65%);pointer-events:none}
+.analyzer-h{font-size:clamp(1.6rem,2.8vw,2.4rem);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:1rem}
+.analyzer-h span{color:var(--lime)}
+.analyzer-sub{color:var(--gray);font-size:.95rem;line-height:1.75;font-weight:300;margin-bottom:1.5rem}
+.analyzer-feats{display:flex;flex-direction:column;gap:8px;margin-bottom:2rem}
+.feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray)}
+.feat::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0}
+.analyzer-form-side{}
+.analyzer-input-wrap{display:flex;flex-direction:column;gap:10px}
+.analyzer-inp{background:var(--bg4);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:13px 16px;font-size:14px;color:var(--white);font-family:var(--fh);outline:none;transition:border-color .18s;width:100%}
+.analyzer-inp:focus{border-color:var(--ind2)}
+.analyzer-inp::placeholder{color:var(--gray2)}
+.analyzer-btn{background:var(--lime);color:var(--bg);border:none;border-radius:9px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fh);width:100%;transition:background .18s,transform .12s}
+.analyzer-btn:hover{background:var(--lime2);transform:translateY(-1px)}
+.analyzer-note{font-size:11px;color:var(--gray2);text-align:center;margin-top:6px}
+
+/* PROCESS */
+.process{padding:clamp(3.5rem,6vw,6rem) var(--px);background:var(--bg);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord)}
+.pg{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:3rem;position:relative}
+.pg::before{content:'';position:absolute;top:27px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--ind3),var(--lime),transparent)}
+.step{text-align:center;padding:0 1.2rem;position:relative;z-index:1}
+.snum{width:54px;height:54px;border-radius:50%;background:var(--bg);border:1.5px solid var(--ind);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--ind3);margin:0 auto 1.2rem}
+.stitle{font-size:1rem;font-weight:600;margin-bottom:8px}
+.sdesc{font-size:13px;color:var(--gray);line-height:1.6;font-weight:300}
+
+/* METRICS */
+.metrics{padding:clamp(4.5rem,8vw,7rem) var(--px);background:var(--bg3);display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mc{background:var(--bg4);border:1px solid var(--bord);border-radius:14px;padding:22px}
+.mc.hi{border-color:rgba(163,230,53,.2);background:rgba(163,230,53,.03)}
+.mb{font-size:2.5rem;font-weight:700;letter-spacing:-1.5px;line-height:1;margin-bottom:7px}
+.md{font-size:13px;color:var(--gray);line-height:1.5;font-weight:300}
+
+/* CTA */
+.cta{padding:clamp(4rem,8vw,7rem) var(--px);background:var(--bg2);text-align:center;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:420px;background:radial-gradient(ellipse,rgba(79,70,229,.1) 0%,transparent 68%);pointer-events:none}
+.cta h2{font-size:clamp(1.9rem,3.8vw,3rem);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:1rem;position:relative}
+.cta h2 span{color:var(--lime)}
+.cta p{color:var(--gray);max-width:440px;margin:0 auto 2.4rem;font-weight:300;line-height:1.75;position:relative}
+.cf{display:flex;gap:10px;max-width:420px;margin:0 auto;position:relative}
+.ci{flex:1;background:var(--bg4);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:13px 16px;font-size:14px;color:var(--white);font-family:var(--fh);outline:none;transition:border-color .18s}
+.ci:focus{border-color:var(--ind2)}
+.ci::placeholder{color:var(--gray2)}
+.csb{background:var(--lime);color:var(--bg);border:none;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fh);white-space:nowrap;transition:background .18s,transform .12s}
+.csb:hover{background:var(--lime2);transform:translateY(-2px)}
+.cn{font-size:12px;color:var(--gray2);margin-top:12px;font-weight:300}
+
+/* FOOTER */
+footer{padding:1.8rem var(--px);background:var(--bg);border-top:1px solid var(--bord);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.fl{font-size:16px;font-weight:700;color:var(--white);text-decoration:none}
+.fl b{color:var(--ind3)}
+.fc{font-size:12px;color:var(--gray2);font-family:var(--fm)}
+.fn{display:flex;gap:1.5rem}
+.fn a{font-size:13px;color:var(--gray2);text-decoration:none}
+.fn a:hover{color:var(--white)}
+
+/* RESPONSIVE */
+@media(max-width:1100px){:root{--px:clamp(2.5rem,7vw,6rem)}.hero{grid-template-columns:1fr 1fr;gap:3rem}.analyzer-card{grid-template-columns:1fr;gap:2rem}}
+@media(max-width:900px){:root{--px:clamp(2rem,5vw,4rem)}.hero{grid-template-columns:1fr;padding-top:108px}.metrics{grid-template-columns:1fr;gap:3rem}.pg{grid-template-columns:1fr 1fr;gap:2rem}.pg::before{display:none}.badge.tr{right:0;top:-10px}.badge.bl{left:0;bottom:10px}}
+@media(max-width:600px){:root{--px:1.5rem}.nav-ul li:not(:last-child){display:none}h1{font-size:2.3rem}.sg{grid-template-columns:1fr}.mg{grid-template-columns:1fr}.pg{grid-template-columns:1fr}.cf{flex-direction:column}footer{flex-direction:column;text-align:center}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#4F46E5"/><path d="M7 22L12.5 12L17.5 18L21 13.5L25 16" stroke="#A3E635" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="9.5" r="3" fill="#A3E635"/></svg>
+    <span class="logo-wm">Agen<b>cia</b></span>
+  </a>
+  <ul class="nav-ul">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#proceso">Proceso</a></li>
+    <li><a href="#analyzer">Analizador</a></li>
+    <li><a href="#contacto" class="nav-cta">Hablar con nosotros</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="pill">Revenue Operations · Analytics · IA</div>
+    <h1>Tus datos.<br>Tu <span class="lime">crecimiento.</span><br><span class="ind">Medible.</span></h1>
+    <p class="hero-sub">Implantamos CRM avanzado, construimos arquitecturas de analytics y automatizamos con IA. Para empresas B2B que necesitan resultados reales, no dashboards bonitos.</p>
+    <div class="btns">
+      <a href="#contacto" class="bp">Auditoría gratuita en 48h</a>
+      <a href="#servicios" class="bo">Ver qué hacemos →</a>
+    </div>
+    <div class="kpis">
+      <div><div class="kv" style="color:var(--lime)">+340%</div><div class="kl">leads cualificados<br>de media</div></div>
+      <div><div class="kv" style="color:var(--ind3)">4.2x</div><div class="kl">ROI medio<br>primer año</div></div>
+      <div><div class="kv" style="color:var(--lime)">48h</div><div class="kl">diagnóstico<br>inicial</div></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="dash">
+      <div class="dbar"><span class="dtitle">Revenue Dashboard</span><div class="dots"><div class="dot" style="background:#ef4444"></div><div class="dot" style="background:#f59e0b"></div><div class="dot" style="background:#22c55e"></div></div></div>
+      <div class="dbody">
+        <div class="mets">
+          <div class="met"><div class="mv" style="color:var(--lime)">€84k</div><div class="ml">MRR actual</div></div>
+          <div class="met"><div class="mv" style="color:var(--ind3)">247</div><div class="ml">Leads mes</div></div>
+          <div class="met"><div class="mv" style="color:#34d399">38%</div><div class="ml">Conv. rate</div></div>
+        </div>
+        <div class="cw">
+          <div class="cl">pipeline · últimas 8 semanas</div>
+          <div class="bars">
+            <div class="b" style="height:34%"></div><div class="b" style="height:48%"></div>
+            <div class="b" style="height:42%"></div><div class="b on" style="height:66%"></div>
+            <div class="b" style="height:55%"></div><div class="b on" style="height:74%"></div>
+            <div class="b hi" style="height:87%"></div><div class="b hi" style="height:96%"></div>
+          </div>
+        </div>
+        <div class="pl">
+          <div class="pr"><span class="pn">MQL → SQL</span><div class="pt"><div class="pf" style="width:72%;background:var(--ind)"></div></div><span class="pp">72%</span></div>
+          <div class="pr"><span class="pn">SQL → Deal</span><div class="pt"><div class="pf" style="width:48%;background:var(--lime)"></div></div><span class="pp">48%</span></div>
+          <div class="pr"><span class="pn">Churn rate</span><div class="pt"><div class="pf" style="width:8%;background:#ef4444"></div></div><span class="pp">8%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="badge tr"><div class="bdot" style="background:var(--lime)"></div><div><div class="bm">HubSpot sync</div><div class="bs2">234 contactos actualizados</div></div></div>
+    <div class="badge bl"><div class="bdot" style="background:var(--ind3)"></div><div><div class="bm">12 workflows activos</div><div class="bs2">automatización 24/7</div></div></div>
+  </div>
+</section>
+
+<div class="strip">
+  <span class="sl">Herramientas que dominamos</span>
+  <div class="si"><span>HubSpot</span><span>Pipedrive</span><span>Salesforce</span><span>Power BI</span><span>GA4 + GTM</span><span>Make</span><span>n8n</span><span>Supabase</span><span>Python</span></div>
+</div>
+
+<section class="services" id="servicios">
+  <div class="ey">// servicios</div>
+  <h2 class="sh">Todo lo que necesitas<br>para crecer con datos</h2>
+  <p class="ss">No vendemos paquetes genéricos. Construimos el sistema exacto que tu empresa necesita para convertir datos en ingresos.</p>
+  <div class="sg">
+    <div class="sc"><div class="sn">01 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="#818CF8" stroke-width="1.5"/><path d="M8 11h6M11 8v6" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="st">CRM & Revenue Ops</div><div class="sd">HubSpot, Pipedrive o Salesforce. Lifecycle completo, lead scoring, workflows y automatización de ventas end-to-end.</div><div class="tags"><span class="tag">HubSpot</span><span class="tag">Pipedrive</span><span class="tag">Workflows</span><span class="tag">Lead scoring</span></div></div>
+    <div class="sc"><div class="sn">02 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="15" width="3" height="5" rx="1" fill="#A3E635"/><rect x="9.5" y="10" width="3" height="10" rx="1" fill="#A3E635"/><rect x="16" y="4" width="3" height="16" rx="1" fill="#A3E635"/></svg></div><div class="st">Analytics & BI</div><div class="sd">Power BI, Looker Studio, GA4 y GTM avanzado. Atribución multicanal y arquitectura de datos en Supabase.</div><div class="tags"><span class="tag">Power BI</span><span class="tag">GA4</span><span class="tag">GTM</span><span class="tag">Supabase</span></div></div>
+    <div class="sc"><div class="sn">03 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3L13.8 9H19L14.8 12.2L16.4 18L11 14.6L5.6 18L7.2 12.2L3 9H8.2L11 3Z" stroke="#818CF8" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="st">IA & Automatización</div><div class="sd">Agentes con LLMs, flujos Make y n8n, integraciones API complejas y chatbots de captación 24/7.</div><div class="tags"><span class="tag">Make</span><span class="tag">n8n</span><span class="tag">APIs</span><span class="tag">Agentes IA</span></div></div>
+    <div class="sc"><div class="sn">04 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="10" cy="10" r="7" stroke="#A3E635" stroke-width="1.5"/><path d="M15.5 15.5L19 19" stroke="#A3E635" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="st">SEO · GEO · AEO</div><div class="sd">Posicionamiento en Google, búsqueda local y optimización para aparecer en ChatGPT, Gemini y Perplexity.</div><div class="tags"><span class="tag">SEO técnico</span><span class="tag">Schema</span><span class="tag">AEO</span><span class="tag">GEO</span></div></div>
+    <div class="sc"><div class="sn">05 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" stroke="#818CF8" stroke-width="1.5"/><rect x="12" y="3" width="7" height="7" rx="2" stroke="#818CF8" stroke-width="1.5"/><rect x="3" y="12" width="7" height="7" rx="2" stroke="#A3E635" stroke-width="1.5"/><rect x="12" y="12" width="7" height="7" rx="2" stroke="#A3E635" stroke-width="1.5"/></svg></div><div class="st">Paid Media</div><div class="sd">Google, Meta y LinkedIn Ads conectados a tu CRM. Atribución real sin métricas de vanidad.</div><div class="tags"><span class="tag">Google Ads</span><span class="tag">Meta</span><span class="tag">LinkedIn</span><span class="tag">CRO</span></div></div>
+    <div class="sc"><div class="sn">06 —</div><div class="ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C11 2 5.5 6.5 5.5 12a5.5 5.5 0 0011 0C16.5 6.5 11 2 11 2Z" stroke="#A3E635" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="st">Transformación Digital</div><div class="sd">Diagnóstico de madurez, hoja de ruta y formación del equipo. Para saber qué cambiar antes de invertir.</div><div class="tags"><span class="tag">Diagnóstico</span><span class="tag">Roadmap</span><span class="tag">Formación</span></div></div>
+  </div>
+</section>
+
+<!-- ANALYZER SECTION -->
+<section class="analyzer-section" id="analyzer">
+  <div class="analyzer-card">
+    <div>
+      <div class="ey">// herramienta gratuita</div>
+      <h2 class="analyzer-h">Descubre qué está<br>fallando en<br><span>tu web ahora</span></h2>
+      <p class="analyzer-sub">Análisis real de SEO, AEO, GEO y velocidad. Datos de Google PageSpeed + análisis completo del HTML. En 30 segundos.</p>
+      <div class="analyzer-feats">
+        <div class="feat">Velocidad real — LCP, FCP, CLS, Core Web Vitals</div>
+        <div class="feat">SEO técnico — title, meta, H1, canonical, schema</div>
+        <div class="feat">AEO — JSON-LD, FAQ schema, llms.txt, estructura IA</div>
+        <div class="feat">GEO — LocalBusiness, NAP, hreflang, Google Maps</div>
+        <div class="feat">robots.txt, sitemap.xml y fundamentos técnicos</div>
+      </div>
+    </div>
+    <div class="analyzer-form-side">
+      <div class="analyzer-input-wrap">
+        <input class="analyzer-inp" type="url" id="heroUrl" placeholder="https://tuempresa.com" autocomplete="off">
+        <button class="analyzer-btn" onclick="goAnalyzer()">Analizar mi web gratis →</button>
+        <p class="analyzer-note">Sin registro · Sin tarjeta · Resultados en 30 segundos</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="process" id="proceso">
+  <div class="ey">// proceso</div>
+  <h2 class="sh">De diagnóstico a sistema<br>en 4 semanas</h2>
+  <div class="pg">
+    <div class="step"><div class="snum">01</div><div class="stitle">Diagnóstico</div><div class="sdesc">48h. Analizamos tu stack, datos y procesos. Sin coste.</div></div>
+    <div class="step"><div class="snum">02</div><div class="stitle">Diseño</div><div class="sdesc">Arquitectura del sistema exacto para tu empresa.</div></div>
+    <div class="step"><div class="snum">03</div><div class="stitle">Implementación</div><div class="sdesc">Construimos, conectamos y formamos a tu equipo.</div></div>
+    <div class="step"><div class="snum">04</div><div class="stitle">Resultados</div><div class="sdesc">Dashboard en vivo y optimización continua mensual.</div></div>
+  </div>
+</section>
+
+<section class="metrics" id="resultados">
+  <div>
+    <div class="ey">// resultados</div>
+    <h2 class="sh">Números que<br>hablan solos</h2>
+    <p style="font-size:1rem;color:var(--gray);max-width:400px;line-height:1.75;font-weight:300">Media de resultados en clientes activos durante el primer año.</p>
+  </div>
+  <div class="mg">
+    <div class="mc hi"><div class="mb" style="color:var(--lime)">+340%</div><div class="md">Incremento en leads cualificados de media</div></div>
+    <div class="mc"><div class="mb" style="color:var(--ind3)">4.2x</div><div class="md">Retorno sobre inversión primer año</div></div>
+    <div class="mc"><div class="mb" style="color:var(--ind3)">−65%</div><div class="md">Reducción de tiempo en tareas manuales</div></div>
+    <div class="mc hi"><div class="mb" style="color:var(--lime)">48h</div><div class="md">Diagnóstico inicial garantizado sin coste</div></div>
+  </div>
+</section>
+
+<section class="cta" id="contacto">
+  <h2>¿Listo para crecer<br>con <span>datos reales?</span></h2>
+  <p>Diagnóstico gratuito en 48 horas. Sin compromiso. Te decimos qué está fallando y cómo arreglarlo.</p>
+  <div class="cf">
+    <input class="ci" type="email" placeholder="tu@empresa.com">
+    <button class="csb">Solicitar auditoría</button>
+  </div>
+  <p class="cn">Sin coste · Respuesta en menos de 24h · Barcelona · España · Latam</p>
+</section>
+
+<footer>
+  <a href="/" class="fl">Agen<b>cia</b></a>
+  <span class="fc">© 2026 · Barcelona · España · Latam</span>
+  <nav class="fn">
+    <a href="#servicios">Servicios</a>
+    <a href="/analyzer">Analizador</a>
+    <a href="#contacto">Contacto</a>
+    <a href="mailto:hola@agencia.ai">hola@agencia.ai</a>
+  </nav>
+</footer>
+
+<script>
+function goAnalyzer() {
+  const url = document.getElementById('heroUrl').value.trim();
+  if (url) {
+    window.location.href = '/analyzer?url=' + encodeURIComponent(url);
+  } else {
+    window.location.href = '/analyzer';
+  }
+}
+document.getElementById('heroUrl').addEventListener('keydown', e => {
+  if (e.key === 'Enter') goAnalyzer();
+});
+</script>
+</body>
+</html>
