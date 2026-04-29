@@ -169,9 +169,10 @@ export default async function handler(req) {
     // 1. PAGESPEED
     // ─────────────────────────────────────────────────
     log('📊 STEP 1: Google PageSpeed API...');
-    const apiKey = typeof process !== 'undefined' && process.env?.PAGESPEED_API_KEY
-      ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
-    log(`🔑 API Key: ${apiKey ? 'YES' : 'NO — using shared quota'}`);
+    // Vercel Edge Runtime reads env vars directly from process.env
+    const rawKey = process.env.PAGESPEED_API_KEY || '';
+    const apiKey = rawKey ? `&key=${rawKey}` : '';
+    log(`🔑 API Key: ${rawKey ? 'YES (' + rawKey.substring(0,8) + '...)' : 'NO — using shared quota'}`);
 
     const psBase = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
     const cats   = 'category=performance&category=seo&category=accessibility&category=best-practices';
