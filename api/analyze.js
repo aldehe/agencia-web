@@ -1,5 +1,7 @@
 export const config = { runtime: 'edge' };
 
+import { filterPagespeed } from '../lib/filterPagespeed.js';
+
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const url = searchParams.get('url');
@@ -24,7 +26,7 @@ export default async function handler(req) {
   const results = {
     url: targetUrl,
     timestamp: new Date().toISOString(),
-    pagespeed: { mobile: null, desktop: null },
+    pagespeed: null,
     html_analysis: null,
     robots: null,
     sitemap: null,
@@ -186,8 +188,11 @@ export default async function handler(req) {
       })
     ]);
 
+    let rawMobile = null;
+    let rawDesktop = null;
+
     if (psMob.status==='fulfilled' && !psMob.value?.error) {
-      results.pagespeed.mobile = psMob.value;
+      rawMobile = psMob.value;
       const perf = Math.round((psMob.value?.lighthouseResult?.categories?.performance?.score||0)*100);
       const seo  = Math.round((psMob.value?.lighthouseResult?.categories?.seo?.score||0)*100);
       const audits = psMob.value?.lighthouseResult?.audits || {};
@@ -203,11 +208,20 @@ export default async function handler(req) {
     }
 
     if (psDesk.status==='fulfilled' && !psDesk.value?.error) {
-      results.pagespeed.desktop = psDesk.value;
+      rawDesktop = psDesk.value;
       const perf = Math.round((psDesk.value?.lighthouseResult?.categories?.performance?.score||0)*100);
       log(`   ✅ Desktop OK — Perf: ${perf}`);
     } else {
       log(`   ❌ Desktop FAILED`);
+    }
+
+    // Aplicar filtro: reemplazamos el crudo por la versión compacta y accionable
+    try {
+      results.pagespeed = filterPagespeed(rawMobile, rawDesktop, { url: targetUrl });
+      log(`   🎯 PageSpeed filtrado OK`);
+    } catch (e) {
+      log(`   ⚠️ Filter error: ${e.message}`);
+      results.errors.push('Filter pagespeed: ' + e.message);
     }
 
     // ─────────────────────────────────────────────────
@@ -368,8 +382,8 @@ export default async function handler(req) {
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     log('📋 SUMMARY');
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    log(`PageSpeed mobile:  ${results.pagespeed.mobile ? '✅' : '❌'}`);
-    log(`PageSpeed desktop: ${results.pagespeed.desktop ? '✅' : '❌'}`);
+    log(`PageSpeed mobile:  ${results.pagespeed?.mobile ? '✅' : '❌'}`);
+    log(`PageSpeed desktop: ${results.pagespeed?.desktop ? '✅' : '❌'}`);
     log(`HTML source:       ${results.html_analysis?.source || '❌'} (${results.html_analysis?.html_length||0} chars)`);
     log(`H1 found:          ${results.html_analysis?.headings?.h1_count||0}`);
     log(`Schema types:      ${results.html_analysis?.schema?.types?.join(', ') || 'none'}`);
