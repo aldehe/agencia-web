@@ -80,6 +80,26 @@ header{padding:1.2rem var(--px);border-bottom:1px solid var(--bord);display:flex
 .warning-title{font-size:13px;font-weight:600;color:var(--amber);margin-bottom:6px}
 .warning-item{font-size:12px;color:var(--gray);line-height:1.5;margin-top:3px}
 
+/* DEBUG ZONE (solo desarrollo) */
+.debug-zone{margin-top:2rem;border:1px dashed rgba(99,102,241,.4);border-radius:14px;background:rgba(15,26,46,.5);overflow:hidden}
+.debug-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;background:rgba(79,70,229,.08)}
+.debug-head:hover{background:rgba(79,70,229,.14)}
+.debug-title{font-size:13px;font-weight:600;color:var(--ind3);font-family:var(--fm)}
+.debug-toggle{font-size:11px;color:var(--gray)}
+.debug-body{padding:18px;display:none;border-top:1px solid var(--bord)}
+.debug-body.open{display:block}
+.debug-section{margin-bottom:18px}
+.debug-section:last-child{margin-bottom:0}
+.debug-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.debug-section-name{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--white);display:flex;align-items:center;gap:8px}
+.debug-pill{font-family:var(--fm);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.debug-pill.ok{background:rgba(34,197,94,.15);color:var(--green)}
+.debug-pill.fail{background:rgba(239,68,68,.15);color:var(--red)}
+.debug-pill.gray{background:rgba(148,163,184,.15);color:var(--gray)}
+.debug-meta{font-family:var(--fm);font-size:11px;color:var(--gray2);margin-bottom:6px}
+.debug-pre{font-family:var(--fm);font-size:10.5px;line-height:1.55;color:var(--gray);background:var(--bg);border:1px solid var(--bord);border-radius:6px;padding:12px;max-height:250px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.debug-actions{display:flex;gap:6px}
+
 /* CRITICAL ALERTS BOX */
 .alerts-box{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(245,158,11,.04));border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:18px 20px;margin-bottom:1.5rem}
 .alerts-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--red);display:flex;align-items:center;gap:8px}
@@ -278,12 +298,18 @@ async function analyze() {
   document.getElementById('resultsSection').innerHTML = '';
   showSteps();
 
+  // Debug info: capturamos status, duration y respuesta cruda de cada endpoint
+  const debug = {
+    url,
+    timestamp: new Date().toISOString(),
+    analyze: { status: null, duration_ms: null, ok: false, body: null, error: null },
+    crawl:   { status: null, duration_ms: null, ok: false, body: null, error: null },
+  };
+
   try {
-    // Llamadas en paralelo: analyze (home + PageSpeed) + crawl (sitio completo)
-    // Tolerante a fallos: si UNO de los dos responde, mostramos resultados
     const [analyzeRes, crawlRes] = await Promise.allSettled([
-      fetchWithTimeout('/api/analyze?url=' + encodeURIComponent(url), 28000),
-      fetchWithTimeout('/api/crawl?url=' + encodeURIComponent(url) + '&max=10', 28000)
+      fetchWithTimeoutDebug('/api/analyze?url=' + encodeURIComponent(url), 28000, debug.analyze),
+      fetchWithTimeoutDebug('/api/crawl?url=' + encodeURIComponent(url) + '&max=10', 28000, debug.crawl)
     ]);
 
     clearSteps();
@@ -292,7 +318,6 @@ async function analyze() {
     const data = analyzeRes.status === 'fulfilled' ? analyzeRes.value : null;
     const crawl = crawlRes.status === 'fulfilled' ? crawlRes.value : null;
 
-    // Si ambos fallaron, error
     if (!data && !crawl) {
       const reasons = [];
       if (analyzeRes.status === 'rejected') reasons.push('analyze: ' + analyzeRes.reason.message);
@@ -300,21 +325,51 @@ async function analyze() {
       throw new Error(reasons.join(' · '));
     }
 
-    // Avisos sobre qué falló (banner amarillo arriba)
     const warnings = [];
     if (!data) warnings.push('PageSpeed no respondió a tiempo. Mostramos análisis técnico del sitio sin datos de velocidad.');
     if (!crawl) warnings.push('No se pudo crawlear el sitio. Mostramos solo análisis de la home.');
 
-    renderResults(data, crawl, { url, warnings });
+    renderResults(data, crawl, { url, warnings, debug });
   } catch(err) {
     clearSteps();
     document.getElementById('loadingSection').classList.remove('active');
     document.getElementById('errorBox').textContent = 'Error al analizar: ' + err.message + '. Verifica que la URL sea válida e intenta de nuevo.';
     document.getElementById('errorSection').classList.add('active');
+    // Aún en error, mostramos debug
+    renderDebugOnly(debug);
   }
 
   btn.disabled = false;
   btn.classList.remove('loading');
+}
+
+async function fetchWithTimeoutDebug(url, timeoutMs, debugSlot) {
+  const start = Date.now();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    debugSlot.status = res.status;
+    debugSlot.duration_ms = Date.now() - start;
+    clearTimeout(timer);
+    if (!res.ok) {
+      debugSlot.error = `HTTP ${res.status}`;
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const body = await res.json();
+    debugSlot.body = body;
+    debugSlot.ok = true;
+    return body;
+  } catch (e) {
+    clearTimeout(timer);
+    debugSlot.duration_ms = Date.now() - start;
+    if (e.name === 'AbortError') {
+      debugSlot.error = `timeout ${timeoutMs}ms`;
+      throw new Error('timeout');
+    }
+    debugSlot.error = e.message;
+    throw e;
+  }
 }
 
 async function fetchWithTimeout(url, timeoutMs) {
@@ -790,13 +845,112 @@ function renderResults(d, crawl, ctx) {
     </div>
     ` : ''}
   </div>
+
+  ${ctx.debug ? buildDebugBlock(ctx.debug) : ''}
   `;
 
   document.getElementById('resultsSection').innerHTML = html;
   document.getElementById('resultsSection').classList.add('active');
   // Guardar el contenido del llms.txt para el botón copy (sin escapar)
   if (llmsTxt) window._llmsTxtContent = llmsTxt.content;
+  // Guardar debug bodies para los botones de copia
+  if (ctx.debug) window._debug = ctx.debug;
   document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ─── DEBUG ZONE ─────────────────────────────────────────────────────────────
+function buildDebugBlock(debug) {
+  const sections = [
+    debugSection('analyze', '/api/analyze', debug.analyze),
+    debugSection('crawl', '/api/crawl', debug.crawl),
+  ].join('');
+
+  return `
+  <div class="debug-zone">
+    <div class="debug-head" onclick="toggleDebug()">
+      <div class="debug-title">🛠 DEBUG · respuestas crudas de los endpoints</div>
+      <div class="debug-toggle" id="debugToggleLabel">▼ mostrar</div>
+    </div>
+    <div class="debug-body" id="debugBody">
+      <div class="debug-meta">URL: ${escapeHtml(debug.url)} · ${escapeHtml(debug.timestamp)}</div>
+      ${sections}
+      <div class="debug-section">
+        <div class="debug-section-head">
+          <div class="debug-section-name">📋 Todo junto (analyze + crawl)</div>
+          <div class="debug-actions">
+            <button class="copy-btn" onclick="copyDebug('all')">Copiar todo</button>
+          </div>
+        </div>
+        <div class="debug-meta">Útil para pegar en chat y diagnosticar bugs.</div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function debugSection(key, label, info) {
+  const okPill = info.ok
+    ? `<span class="debug-pill ok">${info.status} OK</span>`
+    : info.status
+      ? `<span class="debug-pill fail">${info.status} FAIL</span>`
+      : `<span class="debug-pill gray">no respondió</span>`;
+  const duration = info.duration_ms != null ? `${info.duration_ms}ms` : '—';
+  const errMsg = info.error ? `<div class="debug-meta" style="color:var(--red)">Error: ${escapeHtml(info.error)}</div>` : '';
+  const bodyJson = info.body ? JSON.stringify(info.body, null, 2) : (info.error || 'sin respuesta');
+  const truncated = bodyJson.length > 8000 ? bodyJson.substring(0, 8000) + '\n\n... [truncado, usa "Copiar" para el JSON completo]' : bodyJson;
+
+  return `
+  <div class="debug-section">
+    <div class="debug-section-head">
+      <div class="debug-section-name">${label} ${okPill}</div>
+      <div class="debug-actions">
+        <button class="copy-btn" onclick="copyDebug('${key}')" id="copyBtn-${key}">Copiar JSON</button>
+      </div>
+    </div>
+    <div class="debug-meta">duration: ${duration} · ${info.body ? Math.round(JSON.stringify(info.body).length / 1024) + ' KB' : 'sin body'}</div>
+    ${errMsg}
+    <div class="debug-pre">${escapeHtml(truncated)}</div>
+  </div>
+  `;
+}
+
+function toggleDebug() {
+  const body = document.getElementById('debugBody');
+  const lbl = document.getElementById('debugToggleLabel');
+  if (!body) return;
+  const isOpen = body.classList.toggle('open');
+  if (lbl) lbl.textContent = isOpen ? '▲ ocultar' : '▼ mostrar';
+}
+
+function copyDebug(which) {
+  const d = window._debug;
+  if (!d) return;
+  let text;
+  if (which === 'analyze') text = JSON.stringify(d.analyze, null, 2);
+  else if (which === 'crawl') text = JSON.stringify(d.crawl, null, 2);
+  else text = JSON.stringify(d, null, 2);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = which === 'all'
+      ? event.target
+      : document.getElementById('copyBtn-' + which);
+    if (btn) {
+      const old = btn.textContent;
+      btn.classList.add('copied');
+      btn.textContent = '✓ Copiado';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = old;
+      }, 1500);
+    }
+  }).catch(err => alert('No se pudo copiar: ' + err.message));
+}
+
+function renderDebugOnly(debug) {
+  // Para casos de error catastrófico, mostramos solo el debug
+  const html = `<div style="margin-top:1.5rem">${buildDebugBlock(debug)}</div>`;
+  document.getElementById('resultsSection').innerHTML = html;
+  document.getElementById('resultsSection').classList.add('active');
+  window._debug = debug;
 }
 
 function dimName(d) {
