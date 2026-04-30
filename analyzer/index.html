@@ -371,7 +371,8 @@ function renderResults(d, crawl, ctx) {
   const llmsTxt = crawl?.llms_txt_suggested;
   const crawlSummary = crawl?.analysis?.summary;
   const crawlIssues = crawl?.analysis?.issues;
-  const hasAnalyze = !!d.pagespeed;
+  // hasAnalyze: solo true si analyze devolvió scores reales (no null/undefined)
+  const hasAnalyze = !!(d.pagespeed && (d.pagespeed.mobile?.scores?.performance != null || d.pagespeed.desktop?.scores?.performance != null));
 
   // ── Scores PageSpeed (NUEVA estructura: ya viene 0-100 en .scores) ──
   // Si analyze falló, todos null → ocultaremos esa sección
