@@ -75,6 +75,11 @@ header{padding:1.2rem var(--px);border-bottom:1px solid var(--bord);display:flex
 .mini-v{font-family:var(--fm);font-size:1.1rem;font-weight:700;line-height:1;margin-bottom:3px}
 .mini-l{font-size:10px;color:var(--gray2)}
 
+/* WARNING BOX (analyze fallido) */
+.warning-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 18px;margin-bottom:1.2rem}
+.warning-title{font-size:13px;font-weight:600;color:var(--amber);margin-bottom:6px}
+.warning-item{font-size:12px;color:var(--gray);line-height:1.5;margin-top:3px}
+
 /* CRITICAL ALERTS BOX */
 .alerts-box{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(245,158,11,.04));border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:18px 20px;margin-bottom:1.5rem}
 .alerts-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--red);display:flex;align-items:center;gap:8px}
@@ -274,27 +279,37 @@ async function analyze() {
   showSteps();
 
   try {
-    // Llamadas en paralelo: analyze (home) + crawl (sitio completo)
+    // Llamadas en paralelo: analyze (home + PageSpeed) + crawl (sitio completo)
+    // Tolerante a fallos: si UNO de los dos responde, mostramos resultados
     const [analyzeRes, crawlRes] = await Promise.allSettled([
-      fetch('/api/analyze?url=' + encodeURIComponent(url)).then(r => r.ok ? r.json() : Promise.reject(new Error('analyze ' + r.status))),
-      fetch('/api/crawl?url=' + encodeURIComponent(url) + '&max=10').then(r => r.ok ? r.json() : Promise.reject(new Error('crawl ' + r.status)))
+      fetchWithTimeout('/api/analyze?url=' + encodeURIComponent(url), 28000),
+      fetchWithTimeout('/api/crawl?url=' + encodeURIComponent(url) + '&max=10', 28000)
     ]);
 
     clearSteps();
     document.getElementById('loadingSection').classList.remove('active');
 
-    if (analyzeRes.status === 'rejected') {
-      throw new Error('No se pudo analizar la home: ' + analyzeRes.reason.message);
-    }
-
-    const data = analyzeRes.value;
+    const data = analyzeRes.status === 'fulfilled' ? analyzeRes.value : null;
     const crawl = crawlRes.status === 'fulfilled' ? crawlRes.value : null;
 
-    renderResults(data, crawl);
+    // Si ambos fallaron, error
+    if (!data && !crawl) {
+      const reasons = [];
+      if (analyzeRes.status === 'rejected') reasons.push('analyze: ' + analyzeRes.reason.message);
+      if (crawlRes.status === 'rejected') reasons.push('crawl: ' + crawlRes.reason.message);
+      throw new Error(reasons.join(' · '));
+    }
+
+    // Avisos sobre qué falló (banner amarillo arriba)
+    const warnings = [];
+    if (!data) warnings.push('PageSpeed no respondió a tiempo. Mostramos análisis técnico del sitio sin datos de velocidad.');
+    if (!crawl) warnings.push('No se pudo crawlear el sitio. Mostramos solo análisis de la home.');
+
+    renderResults(data, crawl, { url, warnings });
   } catch(err) {
     clearSteps();
     document.getElementById('loadingSection').classList.remove('active');
-    document.getElementById('errorBox').textContent = 'Error al analizar: ' + err.message + '. Verifica que la URL sea válida.';
+    document.getElementById('errorBox').textContent = 'Error al analizar: ' + err.message + '. Verifica que la URL sea válida e intenta de nuevo.';
     document.getElementById('errorSection').classList.add('active');
   }
 
@@ -302,30 +317,69 @@ async function analyze() {
   btn.classList.remove('loading');
 }
 
+async function fetchWithTimeout(url, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('timeout');
+    throw e;
+  }
+}
+
 // ─── RENDER ─────────────────────────────────────────────────────────────────
-function renderResults(d, crawl) {
-  // ── Datos crudos del filtrado nuevo ──
-  const psM  = d.pagespeed?.mobile;
+function renderResults(d, crawl, ctx) {
+  ctx = ctx || {};
+  d = d || {}; // si analyze falló, d viene null → trabajamos con crawl
+
+  // Crawl-derived: la home (primera página o coincidente con la URL)
+  const targetUrl = d.url || ctx.url || crawl?.site;
+  const homePage = crawl?.pages?.find(p =>
+    p.url === targetUrl || p.url === targetUrl + '/' ||
+    p.url === crawl?.site || p.url === crawl?.site + '/'
+  ) || crawl?.pages?.[0];
+
+  // ── Datos crudos: prioridad a analyze, fallback a crawl ──
+  const psM  = d.pagespeed?.mobile;          // null si analyze falló
   const psD  = d.pagespeed?.desktop;
-  const ha   = d.html_analysis;
+  // html_analysis viene de analyze. Si no, usamos los datos del homePage del crawl
+  const ha   = d.html_analysis || (homePage ? {
+    title: homePage.title,
+    meta_description: homePage.meta,
+    headings: homePage.headings,
+    canonical: homePage.canonical,
+    hreflang: homePage.hreflang,
+    open_graph: homePage.open_graph,
+    twitter_card: { value: homePage.twitter_card, ok: !!homePage.twitter_card },
+    schema: homePage.schema,
+    technical: { ...(homePage.technical || {}), https: (homePage.url || '').startsWith('https://') },
+    images: homePage.images,
+    links: homePage.links ? { internal: homePage.links.internal_count, external: homePage.links.external_count } : null,
+  } : {});
+
   const rb   = d.robots;
-  const sm   = d.sitemap;
+  const sm   = d.sitemap || (crawl ? { exists: crawl.discovery?.source?.includes('sitemap'), url_count: crawl.discovery?.total_discovered } : null);
   const ll   = d.llms_txt;
 
-  // Crawl-derived (puede no existir si crawl falló)
-  const homePage = crawl?.pages?.find(p => p.url === d.url || p.url === (d.url + '/')) || crawl?.pages?.[0];
   const citability = homePage?.citability;
   const schemaVal = homePage?.schema_validation;
   const llmsTxt = crawl?.llms_txt_suggested;
   const crawlSummary = crawl?.analysis?.summary;
   const crawlIssues = crawl?.analysis?.issues;
+  const hasAnalyze = !!d.pagespeed;
 
   // ── Scores PageSpeed (NUEVA estructura: ya viene 0-100 en .scores) ──
-  const perfM   = psM?.scores?.performance ?? 0;
-  const perfD   = psD?.scores?.performance ?? 0;
-  const seoLH   = psM?.scores?.seo ?? 0;
-  const a11y    = psM?.scores?.accessibility ?? 0;
-  const bestP   = psM?.scores?.best_practices ?? 0;
+  // Si analyze falló, todos null → ocultaremos esa sección
+  const perfM   = psM?.scores?.performance ?? null;
+  const perfD   = psD?.scores?.performance ?? null;
+  const seoLH   = psM?.scores?.seo ?? null;
+  const a11y    = psM?.scores?.accessibility ?? null;
+  const bestP   = psM?.scores?.best_practices ?? null;
 
   // ── Lab metrics (NUEVA estructura: psM.lab_metrics) ──
   const lcp     = psM?.lab_metrics?.lcp;
@@ -349,7 +403,7 @@ function renderResults(d, crawl) {
   const passesCwvMobile = d.pagespeed?.summary?.passes_cwv?.mobile;
   const passesCwvDesktop = d.pagespeed?.summary?.passes_cwv?.desktop;
 
-  // ── SEO score (combina LH + HTML analysis) ──
+  // ── SEO score (combina LH + HTML analysis, o solo HTML si LH no está) ──
   const seoChecks = [
     ha?.technical?.https,
     ha?.title?.ok,
@@ -360,7 +414,9 @@ function renderResults(d, crawl) {
     ha?.images?.ok,
     !!(ha?.headings?.h2_count > 0)
   ].filter(Boolean).length;
-  const seoScore = Math.round(seoLH * 0.5 + (seoChecks/8)*100*0.5);
+  const seoScore = seoLH != null
+    ? Math.round(seoLH * 0.5 + (seoChecks/8)*100*0.5)
+    : Math.round((seoChecks/8)*100);
 
   // ── AEO score: ahora usa el citability real si está, fallback a checks básicos ──
   let aeoScore;
@@ -389,11 +445,14 @@ function renderResults(d, crawl) {
   // Fundamentos
   const fundChecks = [
     ha?.technical?.https, ha?.technical?.has_viewport, ha?.technical?.has_charset,
-    a11y >= 80, !hasRedirects, !!ha?.technical?.lang
+    a11y != null && a11y >= 80, !hasRedirects, !!ha?.technical?.lang
   ].filter(Boolean).length;
   const fundScore = Math.round((fundChecks/6)*100);
 
-  const global = Math.round(perfM*0.25 + seoScore*0.3 + aeoScore*0.2 + geoScore*0.1 + fundScore*0.15);
+  // Score global: si no hay PageSpeed, lo recalculamos sin perfM
+  const global = hasAnalyze && perfM != null
+    ? Math.round(perfM*0.25 + seoScore*0.3 + aeoScore*0.2 + geoScore*0.1 + fundScore*0.15)
+    : Math.round(seoScore*0.4 + aeoScore*0.3 + geoScore*0.15 + fundScore*0.15);
   const gc = scoreColor(global);
   const circ = 2 * Math.PI * 54;
   const offset = circ - (global/100)*circ;
@@ -402,28 +461,28 @@ function renderResults(d, crawl) {
   // ── ISSUES priorizados ──
   const issues = [];
   if (!ha?.technical?.https)        issues.push({p:'high',t:'Sin HTTPS',d:'Penalización directa de Google. Instala SSL.',cat:'SEO'});
-  if (hasRedirects)                  issues.push({p:'high',t:`Cadena de redirects (${hasRedirects.savings_ms}ms perdidos)`,d:'Múltiples 301 antes del HTML. Configura redirect directo.',cat:'Velocidad'});
+  if (hasAnalyze && hasRedirects)   issues.push({p:'high',t:`Cadena de redirects (${hasRedirects.savings_ms}ms perdidos)`,d:'Múltiples 301 antes del HTML. Configura redirect directo.',cat:'Velocidad'});
   if (!ha?.title?.ok)               issues.push({p:'high',t:'Title tag fuera de rango',d:`Actual: "${escapeHtml(ha?.title?.value||'ninguno')}" (${ha?.title?.length||0} chars). Objetivo: 30-60.`,cat:'SEO'});
   if (!ha?.meta_description?.ok)    issues.push({p:'high',t:'Meta description fuera de rango',d:`Actual: ${ha?.meta_description?.length||0} chars. Objetivo: 120-160.`,cat:'SEO'});
   if (ha?.headings?.h1_count !== 1) issues.push({p:'high',t:`H1 incorrecto (${ha?.headings?.h1_count||0} encontrados)`,d:'Debe haber exactamente 1 H1 por página.',cat:'SEO'});
-  if (!ha?.schema?.has_schema)      issues.push({p:'high',t:'Sin schema markup (JSON-LD)',d:'Los crawlers de IA no pueden leer tu contenido. Añade JSON-LD básico.',cat:'AEO'});
+  if (!ha?.schema?.has_schema && !ha?.schema?.count) issues.push({p:'high',t:'Sin schema markup (JSON-LD)',d:'Los crawlers de IA no pueden leer tu contenido. Añade JSON-LD básico.',cat:'AEO'});
   if (!ha?.schema?.has_organization)issues.push({p:'high',t:'Sin Organization schema',d:'No aparecerás en Knowledge Panel ni en respuestas de IA generativas.',cat:'AEO'});
-  if (passesCwvMobile === false)    issues.push({p:'high',t:'No pasa Core Web Vitals en móvil',d:'Datos reales de usuarios indican performance deficiente. Riesgo de ranking.',cat:'Velocidad'});
+  if (hasAnalyze && passesCwvMobile === false) issues.push({p:'high',t:'No pasa Core Web Vitals en móvil',d:'Datos reales de usuarios indican performance deficiente. Riesgo de ranking.',cat:'Velocidad'});
   if (!ha?.canonical?.ok)           issues.push({p:'med', t:'Sin canonical tag',d:'Riesgo de contenido duplicado y dilución de autoridad SEO.',cat:'SEO'});
   if (!ha?.open_graph?.ok)          issues.push({p:'med', t:'Open Graph incompleto',d:`Falta: ${[!ha?.open_graph?.title&&'og:title',!ha?.open_graph?.description&&'og:description',!ha?.open_graph?.image&&'og:image'].filter(Boolean).join(', ')||'algún campo'}`,cat:'Social'});
   if (!ha?.schema?.has_faq)         issues.push({p:'med', t:'Sin FAQPage schema',d:'Pierdes featured snippets y respuestas de ChatGPT/Gemini.',cat:'AEO'});
   if (!ha?.schema?.has_local_business)issues.push({p:'med',t:'Sin LocalBusiness schema',d:'Imprescindible para aparecer en búsquedas locales y Google Maps.',cat:'GEO'});
-  if (!ha?.hreflang?.ok)            issues.push({p:'med', t:'Sin hreflang',d:'Si operas en España y Latam, el hreflang es imprescindible.',cat:'GEO'});
-  if (!lcpOk && lcp)                issues.push({p:'med', t:`LCP lento: ${lcp.display}`,d:'Objetivo: <2.5s. Optimiza imágenes y elimina render-blocking.',cat:'Velocidad'});
-  if (!clsOk && cls)                issues.push({p:'med', t:`CLS inestable: ${cls.display}`,d:'La página se mueve al cargar. Mala UX y penalización Google.',cat:'Velocidad'});
-  if (hasUnusedJS)                  issues.push({p:'med', t:`JavaScript no usado: ${Math.round((hasUnusedJS.savings_bytes||0)/1024)}KB`,d:`${hasUnusedJS.affected_count} archivos con código innecesario.`,cat:'Velocidad'});
-  if (hasRenderBlocking)            issues.push({p:'med', t:'Recursos bloqueantes',d:`${hasRenderBlocking.affected_count} archivos bloquean el render inicial.`,cat:'Velocidad'});
-  if (!rb?.exists)                  issues.push({p:'med', t:'Sin robots.txt',d:'Crea un robots.txt para controlar la indexación.',cat:'SEO'});
-  if (!sm?.exists)                  issues.push({p:'med', t:'Sin sitemap.xml',d:'El sitemap ayuda a Google a descubrir e indexar todas tus páginas.',cat:'SEO'});
-  if (!ll?.exists)                  issues.push({p:'low', t:'Sin llms.txt',d:'Añade llms.txt para orientar a ChatGPT, Perplexity y Gemini.',cat:'AEO'});
+  if (!ha?.hreflang?.ok && !(ha?.hreflang?.count >= 1)) issues.push({p:'med', t:'Sin hreflang',d:'Si operas en España y Latam, el hreflang es imprescindible.',cat:'GEO'});
+  if (hasAnalyze && !lcpOk && lcp)  issues.push({p:'med', t:`LCP lento: ${lcp.display}`,d:'Objetivo: <2.5s. Optimiza imágenes y elimina render-blocking.',cat:'Velocidad'});
+  if (hasAnalyze && !clsOk && cls)  issues.push({p:'med', t:`CLS inestable: ${cls.display}`,d:'La página se mueve al cargar. Mala UX y penalización Google.',cat:'Velocidad'});
+  if (hasAnalyze && hasUnusedJS)    issues.push({p:'med', t:`JavaScript no usado: ${Math.round((hasUnusedJS.savings_bytes||0)/1024)}KB`,d:`${hasUnusedJS.affected_count} archivos con código innecesario.`,cat:'Velocidad'});
+  if (hasAnalyze && hasRenderBlocking) issues.push({p:'med', t:'Recursos bloqueantes',d:`${hasRenderBlocking.affected_count} archivos bloquean el render inicial.`,cat:'Velocidad'});
+  if (rb && !rb.exists)             issues.push({p:'med', t:'Sin robots.txt',d:'Crea un robots.txt para controlar la indexación.',cat:'SEO'});
+  if (sm && !sm.exists)             issues.push({p:'med', t:'Sin sitemap.xml',d:'El sitemap ayuda a Google a descubrir e indexar todas tus páginas.',cat:'SEO'});
+  if (ll && !ll.exists)             issues.push({p:'low', t:'Sin llms.txt',d:'Añade llms.txt para orientar a ChatGPT, Perplexity y Gemini.',cat:'AEO'});
   if ((ha?.images?.without_alt||0)>0)issues.push({p:'low',t:`${ha.images.without_alt} imágenes sin alt`,d:'El alt text es esencial para SEO y accesibilidad.',cat:'SEO'});
-  if (hasModernImages)               issues.push({p:'low', t:'Imágenes en formato antiguo',d:'Convierte a WebP/AVIF. Ahorra ~30-50% de peso.',cat:'Velocidad'});
-  if (hasTextCompression)            issues.push({p:'low', t:'Sin compresión de texto',d:'Activa gzip/brotli en el servidor.',cat:'Velocidad'});
+  if (hasAnalyze && hasModernImages) issues.push({p:'low', t:'Imágenes en formato antiguo',d:'Convierte a WebP/AVIF. Ahorra ~30-50% de peso.',cat:'Velocidad'});
+  if (hasAnalyze && hasTextCompression) issues.push({p:'low', t:'Sin compresión de texto',d:'Activa gzip/brotli en el servidor.',cat:'Velocidad'});
 
   // Crawl-level issues (sitio completo)
   if (crawlIssues) {
@@ -442,6 +501,13 @@ function renderResults(d, crawl) {
 
   // ── HTML ──
   const html = `
+  ${ctx.warnings && ctx.warnings.length ? `
+  <div class="warning-box">
+    <div class="warning-title">⚠ Análisis parcial</div>
+    ${ctx.warnings.map(w => `<div class="warning-item">${escapeHtml(w)}</div>`).join('')}
+  </div>
+  ` : ''}
+
   <div class="score-overview">
     <div>
       <div class="ring-wrap">
@@ -458,12 +524,12 @@ function renderResults(d, crawl) {
       <div class="overview-verdict" style="color:${gc}">${verdict}</div>
       <div class="overview-summary">${issues.filter(i=>i.p==='high').length} problemas críticos · ${issues.filter(i=>i.p==='med').length} medios · ${issues.filter(i=>i.p==='low').length} menores detectados${crawlSummary?` · ${crawlSummary.pages_analyzed} páginas analizadas del sitio`:''}.</div>
       <div class="mini-scores">
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(perfM)}">${perfM}</div><div class="mini-l">Velocidad</div></div>
+        ${hasAnalyze ? `<div class="mini-s"><div class="mini-v" style="color:${scoreColor(perfM)}">${perfM}</div><div class="mini-l">Velocidad</div></div>` : ''}
         <div class="mini-s"><div class="mini-v" style="color:${scoreColor(seoScore)}">${seoScore}</div><div class="mini-l">SEO</div></div>
         <div class="mini-s"><div class="mini-v" style="color:${scoreColor(aeoScore)}">${aeoScore}</div><div class="mini-l">AEO</div></div>
         <div class="mini-s"><div class="mini-v" style="color:${scoreColor(geoScore)}">${geoScore}</div><div class="mini-l">GEO</div></div>
         <div class="mini-s"><div class="mini-v" style="color:${scoreColor(fundScore)}">${fundScore}</div><div class="mini-l">Fundamentos</div></div>
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(a11y)}">${a11y}</div><div class="mini-l">Accesibilidad</div></div>
+        ${hasAnalyze ? `<div class="mini-s"><div class="mini-v" style="color:${scoreColor(a11y)}">${a11y}</div><div class="mini-l">Accesibilidad</div></div>` : ''}
       </div>
     </div>
   </div>
@@ -482,7 +548,7 @@ function renderResults(d, crawl) {
 
   <div class="tabs">
     <button class="tab active" onclick="switchTab(event,'issues')">⚠ Problemas <span class="badge">${issues.length}</span></button>
-    <button class="tab" onclick="switchTab(event,'speed')">⚡ Velocidad</button>
+    ${hasAnalyze ? `<button class="tab" onclick="switchTab(event,'speed')">⚡ Velocidad</button>` : ''}
     <button class="tab" onclick="switchTab(event,'seo')">🔍 SEO</button>
     <button class="tab" onclick="switchTab(event,'aeo')">🤖 AEO</button>
     <button class="tab" onclick="switchTab(event,'geo')">📍 GEO</button>
@@ -512,6 +578,7 @@ function renderResults(d, crawl) {
   </div>
 
   <!-- SPEED -->
+  ${hasAnalyze ? `
   <div class="panel" id="panel-speed">
     <div class="cards-grid">
       <div class="card ${scoreClass(perfM)}">
@@ -541,6 +608,7 @@ function renderResults(d, crawl) {
       </div>
     </div>
   </div>
+  ` : ''}
 
   <!-- SEO -->
   <div class="panel" id="panel-seo">
