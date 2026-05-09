@@ -13,5 +13,11 @@
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/notify-report",
+      "schedule": "0 19 * * *"
+    }
   ]
 }
