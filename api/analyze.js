@@ -4,7 +4,7 @@ import { filterPagespeed } from '../lib/filterPagespeed.js';
 import { detectStack } from '../lib/detectStack.js';
 
 // Timeouts: total Edge = 25s, dejamos margen.
-const PAGESPEED_TIMEOUT_MS = 10000;   // 10s por strategy (mobile/desktop)
+const PAGESPEED_TIMEOUT_MS = 18000;   // 18s por strategy (PageSpeed con API key tarda 12-15s)
 const HTML_FETCH_TIMEOUT_MS = 8000;
 const ROBOTS_TIMEOUT_MS = 4000;
 
