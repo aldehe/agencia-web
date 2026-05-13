@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' };
 
 import { filterPagespeed } from '../lib/filterPagespeed.js';
+import { detectStack } from '../lib/detectStack.js';
 
 // Timeouts: total Edge = 25s, dejamos margen.
 const PAGESPEED_TIMEOUT_MS = 10000;   // 10s por strategy (mobile/desktop)
@@ -35,6 +36,7 @@ export default async function handler(req) {
     robots: null,
     sitemap: null,
     llms_txt: null,
+    stack_detected: null,
     errors: [],
     duration_ms: 0,
   };
@@ -102,6 +104,19 @@ export default async function handler(req) {
 
   // ─── Procesar llms.txt ───
   results.llms_txt = processLlmsTxt(llmsRes);
+
+  // ─── Stack detection (Sesión #7) ───
+  // Requiere HTML y opcionalmente robots.txt. Si no hay HTML, no se ejecuta.
+  if (html) {
+    try {
+      const robotsContent = (robotsRes.status === 'fulfilled' && robotsRes.value?.exists)
+        ? (robotsRes.value.content || '')
+        : null;
+      results.stack_detected = detectStack(html, robotsContent);
+    } catch (e) {
+      results.errors.push('Stack detection: ' + e.message);
+    }
+  }
 
   results.duration_ms = Date.now() - startTime;
 

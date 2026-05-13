@@ -1,11 +1,21 @@
 // Endpoint /api/crawl?url=https://ejemplo.com
 //
 // Hace inventario completo del sitio: descubre URLs (sitemap o crawl),
-// analiza cada página (title, meta, headings, schema, imágenes, links)
-// y devuelve un análisis agregado con issues priorizados.
+// analiza cada página (title, meta, headings, schema, imágenes, links),
+// rankea las Top 5 Landing Pages (Sesión #6) y devuelve un análisis
+// agregado con issues priorizados.
 //
 // Runtime: Edge — compatible con plan free de Vercel (25s timeout).
-// Para sitios PYME hasta 40 URLs cabe bien en el timeout.
+// Para sitios PYME hasta 50 URLs cabe bien en el timeout.
+//
+// Respuesta incluye:
+//   - discovery: { source, total_discovered, analyzed, truncated }
+//   - sitemap_quality: { score, pct_lastmod, pct_priority, ... } | null
+//   - pages: [...]
+//   - analysis: { summary, issues, samples, link_graph, schema_types_found }
+//   - top_landing_pages: [...]  ← NUEVO Sesión #6
+//   - llms_txt_suggested: { content, stats } | null
+//   - duration_ms, log
 
 import { crawlSite } from '../lib/crawler.js';
 
@@ -46,15 +56,20 @@ export default async function handler(req) {
   }
 
   // Parámetros opcionales
-  // Cap default 40 para caber en 25s de Edge en plan free.
+  // Cap default 50 para caber en 25s de Edge en plan free.
   // Subir solo si tienes pro o sitios muy rápidos.
-  const maxUrls = clamp(parseInt(searchParams.get('max')) || 40, 1, 100);
+  const maxUrls = clamp(parseInt(searchParams.get('max')) || 50, 1, 100);
   const concurrency = clamp(parseInt(searchParams.get('concurrency')) || 8, 1, 15);
+  const topLanding = clamp(parseInt(searchParams.get('top_landing')) || 5, 1, 10);
 
-  console.log(`🕷 Crawl: ${target} (max=${maxUrls}, conc=${concurrency})`);
+  console.log(`🕷 Crawl: ${target} (max=${maxUrls}, conc=${concurrency}, top_landing=${topLanding})`);
 
   try {
-    const result = await crawlSite(target, { maxUrls, concurrency });
+    const result = await crawlSite(target, {
+      maxUrls,
+      concurrency,
+      topLandingCount: topLanding,
+    });
     return jsonResponse(result, 200, {
       ...corsHeaders,
       'Cache-Control': 'no-store',

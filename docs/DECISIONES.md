@@ -101,3 +101,65 @@ Formato:
 **Elegida**: Vercel Cron a las 19:00 UTC (= 20:00 hora España).  
 **Motivo**: nativo de Vercel (mismo stack), free tier incluye 2 cron jobs, predecible (a esa hora SIEMPRE se intenta), si no hay PDF nuevo simplemente no envía nada. No requiere servicios externos.  
 **Consecuencias**: si trabajas a las 22:00, el email del día sale al día siguiente a las 20:00. Aceptable. En verano (UTC+2) llegará a las 21:00 hora España; ajustar el cron si molesta.
+
+---
+
+## 2026-05-12 · Heurística de ranking para "Top 5 Landing Pages"
+
+**Contexto**: el dashboard hoy muestra solo la home a fondo + un agregado del sitio. Falta análisis individual de las páginas más importantes (las que el cliente quiere ver primero). Sin acceso a GA ni Search Console (decisión 2026-05-07), no podemos usar tráfico real.
+**Opciones consideradas**: (a) mostrar siempre las N páginas con mayor citability, (b) mostrar siempre las primeras N del sitemap, (c) heurística compuesta con varios factores ponderados, (d) que el usuario elija qué páginas analizar.
+**Elegida**: opción (c) — heurística compuesta con 5 factores: tipo de página (pricing/service/product pesan más), profundidad del path (raíz > profundo), inbound internal links (señal de relevancia), word count razonable, citability bonus.
+**Motivo**: replica lo que un humano haría al abrir el sitio a ojo. No requiere accesos extra. La opción (d) añade fricción al lead magnet (decisión 2026-05-07). La opción (a) descarta páginas estratégicas con baja citability (que son justo las que hay que arreglar).
+**Consecuencias**: el ranking puede equivocarse en sitios atípicos (blogs sin estructura comercial, e-commerce con miles de SKUs). Para esos casos, el cliente ya verá toda la lista de issues agregados del sitio. Pesos en `lib/rankPages.js`, ajustables. Excluye legales/404/login automáticamente.
+
+---
+
+## 2026-05-12 · Mini-dashboards por LP con su propio score, no solo issues
+
+**Contexto**: al exponer las Top 5 LP, ¿qué nivel de detalle mostrar por cada una?
+**Opciones consideradas**: (a) solo la URL y un enlace, (b) lista de issues por página, (c) mini-dashboard completo con score SEO + AEO + meta-pills + top 3 issues.
+**Elegida**: opción (c).
+**Motivo**: el cliente entiende mejor un número que una lista. Dos scores (SEO/AEO) en colores semáforo son leíbles de un vistazo. Top 3 issues por página dan accionabilidad. Cap a 3 evita avalancha visual.
+**Consecuencias**: más HTML que renderizar y más cómputo en backend (build de mini-dashboard por LP). Coste despreciable: ya tenemos `parsePage` y `citability` calculados para cada página. Hay que mantener consistencia visual con el resto del dashboard (mismos colores y pills).
+
+---
+
+## 2026-05-12 · Sitemap quality score, no solo "existe"
+
+**Contexto**: hoy el analyzer dice "sitemap.xml: presente, 40 URLs" o "no encontrado". No mide calidad real.
+**Opciones consideradas**: (a) dejarlo así, (b) medir solo lastmod, (c) score 0-100 combinando lastmod, priority, changefreq y % de URLs que responden 200.
+**Elegida**: opción (c). Peso 40% lastmod + 20% priority + 30% URLs OK + 10% changefreq presente.
+**Motivo**: lastmod es lo que más usan los crawlers IA (Google-Extended, GPTBot) para priorizar. priority guía a Google. URLs rotas en sitemap penalizan crawl budget. Un score compuesto comunica mejor que métricas sueltas.
+**Consecuencias**: solo aplica cuando el sitemap es legible (no si se generó por crawl desde home). Comprobamos status real solo para URLs que cabe en `maxUrls` (50 por defecto), no para todas las del sitemap si supera el cap. Aceptable: las muestras representativas son suficientes.
+
+
+---
+
+## 2026-05-12 · Stack detection por regex en HTML inicial, no headless browser
+
+**Contexto**: para detectar qué herramientas (CRM, Analytics, Ads, chatbots) tiene un sitio, hay dos enfoques: parsear el HTML inicial con regex o ejecutar un navegador headless tipo Puppeteer/Playwright.
+**Opciones consideradas**: (a) regex sobre HTML inicial, (b) headless browser que ejecuta JS y captura todas las requests, (c) servicio externo tipo BuiltWith/Wappalyzer API.
+**Elegida**: opción (a) — regex sobre HTML inicial.
+**Motivo**: (b) requiere runtime Node (no Edge), añade 5-10s por análisis, multiplica costes y rompe la convención técnica del proyecto. (c) es pago, mete dependencia externa y latencia. (a) cubre el 90% de los casos porque las huellas más usadas (HubSpot, GA4, GTM, Meta Pixel, Intercom, etc.) cargan desde HTML inicial. Lo que se inyecta dinámicamente es raro y minoritario.
+**Consecuencias**: aceptamos no detectar tags inyectados por GTM containers (no vemos qué hay dentro de GTM). Lo comunicamos en el dashboard: "Tienes GTM, no sabemos qué tags carga, lo revisamos en la llamada". Falso negativo: cero falso positivo en pruebas (sitio con palabra "HubSpot" en blog pero sin script real → no detectado). Si en producción aparecen falsos positivos frecuentes, se ajustan las regex.
+
+---
+
+## 2026-05-12 · Score de "madurez digital" 0-100 sobre stack
+
+**Contexto**: ¿cómo comunicar de un vistazo si un sitio tiene "stack completo" o "stack pobre"?
+**Opciones consideradas**: (a) mostrar solo la lista de detecciones sin score, (b) score binario "completo / incompleto", (c) score 0-100 ponderado por categoría.
+**Elegida**: opción (c) — score 0-100 con 5 categorías de 20 puntos cada una con ajustes (GA4 vale 15, GTM extra 5, UA legacy penaliza, etc.).
+**Motivo**: un número en el badge del tab comunica al instante. Combinar el score con la idea de "los 6 servicios de la agencia" abre la conversación natural: "Tu madurez digital está en 35/100, tenemos margen para mejorar 5 áreas".
+**Consecuencias**: el cálculo del score puede sentirse arbitrario al cliente; explicamos en el panel cómo se compone. Si discutible, ajustar pesos en `computeMaturityScore` de `detectStack.js`.
+
+---
+
+## 2026-05-12 · Recomendaciones derivadas como gancho de venta integrado
+
+**Contexto**: ¿el panel Stack solo informa de qué hay, o también recomienda qué falta?
+**Opciones consideradas**: (a) solo informar, (b) recomendar también explícitamente con CTA por área.
+**Elegida**: opción (b) — al detectar gaps, generar `recommendations[]` con `area`, `severity`, `title`, `detail`. Cada recomendación mapea a una solución vendible de la agencia (CRM & RevOps, Analytics & BI, IA & Automatización, etc.).
+**Motivo**: lead magnet integral. Si el cliente no tiene CRM y no se lo dices, no abrirás esa conversación. El analizador deja de ser solo SEO/AEO/GEO para convertirse en diagnóstico de las 6 soluciones.
+**Consecuencias**: cuidado con sonar a "vende-humo" (instrucción explícita del usuario). Cada recomendación dice qué falta y por qué importa con un dato concreto, sin promesas vagas. La oferta sigue saliendo solo en el CTA final, no en cada panel.
+

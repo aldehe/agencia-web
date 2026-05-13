@@ -6,11 +6,14 @@ Backlog priorizado. Marcar como `[x]` cuando se complete.
 
 ## 🔥 Inmediato (esta semana)
 
-- [ ] Crear cuenta Resend + obtener API key
-- [ ] Configurar `RESEND_API_KEY` en Vercel env vars
-- [ ] Subir sistema bitácora completo al repo (`docs/`, `api/notify-report.js`, `vercel.json` actualizado con cron)
-- [ ] Verificar que el cron de las 20:00 envía el primer email correctamente
-- [ ] Probar el analizador con 2-3 sites adicionales (stripe.com, una PYME ES, una Latam)
+- [x] Crear cuenta Resend + obtener API key
+- [x] Configurar `RESEND_API_KEY` en Vercel env vars
+- [x] Subir sistema bitácora completo al repo (`docs/`, `api/notify-report.js`, `vercel.json` actualizado con cron)
+- [x] Verificar que el cron de las 20:00 envía el primer email correctamente
+- [x] **Sesión #6: Top 5 Landing Pages + Sitemap quality + Thin content + H1 duplicados**
+- [x] **Sesión #7: Stack detection (CRM, Analytics, Ads, Chat, bots-IA)**
+- [ ] **Sesión #8: Prueba LLM real (Claude API) + refundir frontend final con plan de acción agrupado por solución de agencia**
+- [ ] Probar el analizador con 2-3 sites adicionales (stripe.com, una PYME ES, una Latam) tras sesiones #6+#7
 - [ ] Decidir copy persuasivo del CTA en el dashboard
 
 ---
@@ -18,10 +21,12 @@ Backlog priorizado. Marcar como `[x]` cuando se complete.
 ## 📅 Corto plazo (próximas 2-3 semanas)
 
 - [ ] **Frontend persuasivo del informe**
-  - Sección "Tu posición vs benchmark del sector"
-  - Quick wins de impacto inmediato (top 3)
-  - Plan de implementación 4-6 semanas visualizado
-  - CTA final fuerte con email/WhatsApp
+  - [x] Sección "Top páginas estratégicas del sitio" (sesión #6)
+  - [x] Sección "Stack digital detectado" con recomendaciones por área (sesión #7)
+  - [ ] Sección "Tu posición vs benchmark del sector"
+  - [x] Quick wins de impacto inmediato (top 3 ya en el banner)
+  - [ ] Plan de implementación 4-6 semanas visualizado (sesión #8)
+  - [ ] CTA final fuerte con email/WhatsApp
 - [ ] **PDF descargable del informe del cliente**
   - Reusar el sistema de PDF de bitácoras pero con plantilla "informe ejecutivo"
   - Botón "Descargar informe en PDF" en el dashboard
@@ -74,6 +79,7 @@ Aparcadas hasta que haya señal de demanda real.
 - Sección "Histórico" en el dashboard que muestre cambios desde último análisis
 - White-label del analizador para revenders
 - Plugin de WordPress / extensión de Chrome
+- Ampliar diccionario de stack: e-commerce (Shopify, WooCommerce), CMS detection, A/B testing tools (Optimizely, VWO), email marketing (Convertkit, Mailerlite)
 
 ---
 
@@ -84,7 +90,9 @@ Aparcadas hasta que haya señal de demanda real.
 - Scraping directo Google → bloqueado en Vercel
 - Backlinks/DA/PA pagados → no necesarios para el diferencial AEO/GEO
 - Search Console / GA / OAuth del cliente en Etapa 1 → fricción que no compensa
+- Headless browser para stack detection → rompe Edge Runtime, multiplica costes (decisión 2026-05-12)
+- BuiltWith/Wappalyzer API → pago y latencia, no aporta vs regex (decisión 2026-05-12)
 
 ---
 
-**Última actualización**: 2026-05-08
+**Última actualización**: 2026-05-12 (sesión #7)

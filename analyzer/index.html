@@ -193,7 +193,103 @@ header{padding:1.2rem var(--px);border-bottom:1px solid var(--bord);display:flex
 .btn-lime:hover{background:var(--lime2)}
 .btn-ghost{background:transparent;color:var(--white);font-size:13px;padding:11px 22px;border-radius:8px;border:1px solid rgba(255,255,255,.14);cursor:pointer;font-family:var(--fh);text-decoration:none}
 
-@media(max-width:700px){.score-overview{grid-template-columns:1fr;gap:1.5rem;text-align:center}.input-row{flex-direction:column}.analyze-btn{width:100%;justify-content:center}.cards-grid{grid-template-columns:1fr}.issue{grid-template-columns:auto 1fr}.dim-row{grid-template-columns:90px 1fr 40px}}
+/* TOP LANDING PAGES (Sesión #6) */
+.lp-intro{margin-bottom:1.5rem}
+.lp-intro-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.lp-intro-sub{font-size:12.5px;color:var(--gray);line-height:1.6}
+.lp-sitemap-box{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:18px;margin-bottom:1.5rem}
+.lp-sitemap-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.lp-sitemap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px}
+.lp-sm-item{background:var(--bg3);border-radius:8px;padding:10px 12px}
+.lp-sm-k{font-size:10.5px;color:var(--gray2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.lp-sm-v{font-family:var(--fm);font-size:14px;font-weight:700;color:var(--white)}
+.lp-sm-v.ok{color:var(--green)}
+.lp-sm-v.warn{color:var(--amber)}
+.lp-sm-v.fail{color:var(--red)}
+.lp-sm-problems{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.lp-sm-problem{font-size:11.5px;color:var(--amber);line-height:1.5}
+.lp-list{display:flex;flex-direction:column;gap:14px}
+.lp-card{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:18px;transition:border-color .15s}
+.lp-card:hover{border-color:rgba(99,102,241,.3)}
+.lp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
+.lp-head-left{display:flex;gap:14px;align-items:flex-start;min-width:0;flex:1}
+.lp-rank{font-family:var(--fm);font-size:18px;font-weight:700;color:var(--ind3);flex-shrink:0;min-width:32px}
+.lp-meta{min-width:0;flex:1}
+.lp-type{font-size:10.5px;color:var(--gray2);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.lp-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px;overflow-wrap:anywhere}
+.lp-url{font-family:var(--fm);font-size:11px;color:var(--gray);text-decoration:none;overflow-wrap:anywhere}
+.lp-url:hover{color:var(--ind3)}
+.lp-head-right{display:flex;gap:14px;flex-shrink:0}
+.lp-score-block{text-align:center;min-width:48px}
+.lp-score-val{font-family:var(--fm);font-size:22px;font-weight:700;line-height:1}
+.lp-score-lbl{font-size:10px;color:var(--gray2);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
+.lp-meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.lp-meta-pill{font-size:11px;padding:3px 9px;border-radius:12px;background:var(--bg3);color:var(--gray);border:1px solid rgba(255,255,255,.04)}
+.lp-meta-pill.ok{color:var(--green);border-color:rgba(34,197,94,.18)}
+.lp-meta-pill.fail{color:var(--red);border-color:rgba(239,68,68,.18)}
+.lp-issues{display:flex;flex-direction:column;gap:7px;margin-top:8px;padding-top:12px;border-top:1px solid var(--bord)}
+.lp-issues-title{font-size:11.5px;color:var(--gray2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.lp-issue{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.55}
+.lp-issue-text{color:var(--gray)}
+.lp-issue-text b{color:var(--white);font-weight:500}
+.lp-no-issues{font-size:12px;color:var(--green);margin-top:8px;padding-top:12px;border-top:1px solid var(--bord)}
+
+/* STACK DETECTED (Sesión #7) */
+.stack-intro{margin-bottom:1.5rem}
+.stack-intro-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.stack-intro-sub{font-size:12.5px;color:var(--gray);line-height:1.6}
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:1.5rem}
+.stack-card{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.stack-card.empty{border-color:rgba(245,158,11,.18)}
+.stack-card.has-items{border-color:rgba(34,197,94,.18)}
+.stack-card-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bord);padding-bottom:8px}
+.stack-card-title{font-size:13px;font-weight:600}
+.stack-card-count{font-family:var(--fm);font-size:11px;color:var(--gray2);background:var(--bg3);padding:2px 8px;border-radius:10px}
+.stack-card-body{display:flex;flex-direction:column;gap:8px}
+.stack-item{display:flex;gap:10px;align-items:flex-start;font-size:12.5px}
+.stack-item-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.stack-item-dot.ok{background:rgba(34,197,94,.14);color:var(--green)}
+.stack-item-body{flex:1;min-width:0}
+.stack-item-name{font-weight:500;color:var(--white)}
+.stack-item-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.stack-tag{font-family:var(--fm);font-size:10px;padding:1px 7px;border-radius:9px}
+.stack-tag.legacy{background:rgba(239,68,68,.14);color:var(--red)}
+.stack-tag.id{background:var(--bg3);color:var(--gray);border:1px solid rgba(255,255,255,.05)}
+.stack-empty-sug{padding:8px 0}
+.stack-empty-title{font-size:12.5px;color:var(--amber);font-weight:500;margin-bottom:3px}
+.stack-empty-sub{font-size:11.5px;color:var(--gray2);line-height:1.5}
+
+.stack-ai-box{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:18px;margin-bottom:1.5rem}
+.stack-ai-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.stack-ai-sub{font-size:12px;color:var(--gray);line-height:1.5;margin-bottom:12px}
+.stack-ai-empty{font-size:12.5px;color:var(--amber);padding:10px 12px;background:rgba(245,158,11,.06);border-radius:8px;border-left:2px solid var(--amber)}
+.stack-ai-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stack-ai-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
+.stack-ai-pill.ok{background:rgba(34,197,94,.14);color:var(--green)}
+.stack-ai-pill.fail{background:rgba(239,68,68,.14);color:var(--red)}
+.stack-ai-pill.neutral{background:var(--bg3);color:var(--gray)}
+.stack-ai-bots{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.stack-ai-bot{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);padding:8px 12px;border-radius:8px;font-size:12px}
+.stack-ai-bot-name{color:var(--white)}
+.stack-ai-bot-status{font-family:var(--fm);font-size:11px;font-weight:600}
+.stack-ai-bot-status.status-allowed{color:var(--green)}
+.stack-ai-bot-status.status-disallowed{color:var(--red)}
+.stack-ai-bot-status.status-partial{color:var(--amber)}
+.stack-ai-bot-status.status-not_specified{color:var(--gray2)}
+
+.stack-recs-box{background:var(--bg2);border:1px solid var(--bord);border-radius:14px;padding:18px;margin-bottom:1rem}
+.stack-recs-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.stack-rec{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--bord);align-items:flex-start}
+.stack-rec:first-of-type{border-top:0;padding-top:0}
+.stack-rec-text{font-size:12.5px;line-height:1.55}
+.stack-rec-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px}
+.stack-rec-head b{color:var(--white);font-weight:500}
+.stack-rec-area{font-family:var(--fm);font-size:10px;color:var(--ind3);background:rgba(99,102,241,.1);padding:1px 7px;border-radius:9px}
+.stack-rec-detail{color:var(--gray)}
+.stack-note{font-size:11.5px;color:var(--gray2);line-height:1.6;padding:12px 14px;background:var(--bg2);border:1px dashed var(--bord);border-radius:10px;margin-top:1rem}
+.stack-note b{color:var(--gray)}
+
+@media(max-width:700px){.score-overview{grid-template-columns:1fr;gap:1.5rem;text-align:center}.input-row{flex-direction:column}.analyze-btn{width:100%;justify-content:center}.cards-grid{grid-template-columns:1fr}.issue{grid-template-columns:auto 1fr}.dim-row{grid-template-columns:90px 1fr 40px}.lp-head{flex-direction:column}.lp-head-right{align-self:stretch;justify-content:flex-start}.lp-issue{grid-template-columns:auto 1fr}}
 </style>
 </head>
 <body>
@@ -282,6 +378,31 @@ function chk(ok, warn, html) {
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderStackCategory(title, detected, key, suggestions) {
+  const has = detected && detected.length > 0;
+  const items = has ? detected.map(d => {
+    const legacyTag = d.legacy ? '<span class="stack-tag legacy">⚠ Deprecado</span>' : '';
+    const idTag = d.detected_id ? `<span class="stack-tag id">${escapeHtml(d.detected_id)}</span>` : '';
+    return `<div class="stack-item detected">
+      <span class="stack-item-dot ok">✓</span>
+      <div class="stack-item-body">
+        <div class="stack-item-name">${escapeHtml(d.name)}</div>
+        <div class="stack-item-tags">${legacyTag}${idTag}</div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="stack-empty-sug">
+    <div class="stack-empty-title">Nada detectado en esta categoría</div>
+    <div class="stack-empty-sub">Tipos comunes: ${suggestions.join(' · ')}</div>
+  </div>`;
+  return `<div class="stack-card ${has?'has-items':'empty'}" data-cat="${key}">
+    <div class="stack-card-head">
+      <div class="stack-card-title">${title}</div>
+      <span class="stack-card-count">${detected ? detected.length : 0}</span>
+    </div>
+    <div class="stack-card-body">${items}</div>
+  </div>`;
 }
 
 async function analyze() {
@@ -426,6 +547,10 @@ function renderResults(d, crawl, ctx) {
   const llmsTxt = crawl?.llms_txt_suggested;
   const crawlSummary = crawl?.analysis?.summary;
   const crawlIssues = crawl?.analysis?.issues;
+  const crawlSamples = crawl?.analysis?.samples;
+  const topLandingPages = crawl?.top_landing_pages || [];
+  const sitemapQuality = crawl?.sitemap_quality;
+  const stackDetected = d.stack_detected;
   // hasAnalyze: solo true si analyze devolvió scores reales (no null/undefined)
   const hasAnalyze = !!(d.pagespeed && (d.pagespeed.mobile?.scores?.performance != null || d.pagespeed.desktop?.scores?.performance != null));
 
@@ -543,8 +668,30 @@ function renderResults(d, crawl, ctx) {
   // Crawl-level issues (sitio completo)
   if (crawlIssues) {
     if (crawlIssues.duplicate_titles > 0) issues.push({p:'med',t:`${crawlIssues.duplicate_titles} titles duplicados`,d:`Páginas con el mismo title en el sitio.`,cat:'SEO sitio'});
+    if (crawlIssues.duplicate_h1 > 0) issues.push({p:'med',t:`${crawlIssues.duplicate_h1} H1 duplicados entre páginas`,d:`Mismo H1 en varias páginas — dilución semántica.`,cat:'SEO sitio'});
     if (crawlIssues.missing_canonical >= 3) issues.push({p:'med',t:`${crawlIssues.missing_canonical} páginas sin canonical`,d:`Riesgo de contenido duplicado en todo el sitio.`,cat:'SEO sitio'});
     if (crawlIssues.broken_internal_links > 0) issues.push({p:'high',t:`${crawlIssues.broken_internal_links} links internos rotos`,d:`URLs enlazadas que devuelven 4xx/5xx.`,cat:'SEO sitio'});
+    if (crawlIssues.thin_content >= 3) issues.push({p:'med',t:`${crawlIssues.thin_content} páginas con thin content`,d:`Páginas con menos de 300 palabras — rinden mal en SEO y AEO.`,cat:'SEO sitio'});
+  }
+  // Sitemap quality issues
+  if (sitemapQuality && sitemapQuality.score < 50 && sitemapQuality.total_entries > 0) {
+    issues.push({p:'med',t:`Sitemap pobre (score ${sitemapQuality.score}/100)`,d:sitemapQuality.problems.slice(0,2).join('. ')||'Falta lastmod, priority y/o tiene URLs rotas.',cat:'SEO sitio'});
+  }
+
+  // Stack detection issues (Sesión #7)
+  if (stackDetected) {
+    if (stackDetected.analytics?.has_legacy_ua) {
+      issues.push({p:'high',t:'Universal Analytics aún instalado (deprecado)',d:'Google dejó de procesar datos UA en julio 2023. Migración a GA4 urgente.',cat:'Analytics'});
+    }
+    if (!stackDetected.analytics?.has_ga4 && !stackDetected.analytics?.has_gtm) {
+      issues.push({p:'high',t:'Sin analítica detectada',d:'No hay GA4 ni GTM. Imposible medir tráfico, conversiones o ROI de campañas.',cat:'Analytics'});
+    }
+    if (!stackDetected.crm?.has_any) {
+      issues.push({p:'med',t:'Sin CRM ni sistema de captación',d:'No detectamos HubSpot, Pipedrive, Salesforce o equivalente. Los leads no quedan registrados.',cat:'CRM'});
+    }
+    if (!stackDetected.ads?.has_any) {
+      issues.push({p:'low',t:'Sin píxeles de remarketing',d:'No hay Meta Pixel, Google Ads tag ni LinkedIn Insight. Sin remarketing posible.',cat:'Ads'});
+    }
   }
 
   const prioOrder = {high:0,med:1,low:2};
@@ -608,6 +755,8 @@ function renderResults(d, crawl, ctx) {
     <button class="tab" onclick="switchTab(event,'seo')">🔍 SEO</button>
     <button class="tab" onclick="switchTab(event,'aeo')">🤖 AEO</button>
     <button class="tab" onclick="switchTab(event,'geo')">📍 GEO</button>
+    ${topLandingPages && topLandingPages.length ? `<button class="tab" onclick="switchTab(event,'lp')">🎯 Top LP <span class="badge">${topLandingPages.length}</span></button>` : ''}
+    ${stackDetected ? `<button class="tab" onclick="switchTab(event,'stack')">🧰 Stack <span class="badge">${stackDetected.maturity_score}/100</span></button>` : ''}
     ${llmsTxt ? `<button class="tab" onclick="switchTab(event,'llms')">📝 llms.txt</button>` : ''}
     <button class="tab" onclick="switchTab(event,'raw')">📋 Datos raw</button>
   </div>
@@ -785,6 +934,162 @@ function renderResults(d, crawl, ctx) {
       </div>
     </div>
   </div>
+
+  ${topLandingPages && topLandingPages.length ? `
+  <!-- TOP LANDING PAGES -->
+  <div class="panel" id="panel-lp">
+    <div class="lp-intro">
+      <div class="lp-intro-title">🎯 Top ${topLandingPages.length} páginas estratégicas del sitio</div>
+      <div class="lp-intro-sub">Además de la home, estas son las páginas más importantes según enlaces internos, profundidad, tipo de contenido y citabilidad. Cada una con su propio diagnóstico.${sitemapQuality?` Calidad del sitemap: <b style="color:${scoreColor(sitemapQuality.score)}">${sitemapQuality.score}/100</b>.`:''}</div>
+    </div>
+
+    ${sitemapQuality ? `
+    <div class="lp-sitemap-box">
+      <div class="lp-sitemap-title">📑 Sitemap.xml — calidad real</div>
+      <div class="lp-sitemap-grid">
+        <div class="lp-sm-item"><div class="lp-sm-k">URLs declaradas</div><div class="lp-sm-v">${sitemapQuality.total_entries}</div></div>
+        <div class="lp-sm-item"><div class="lp-sm-k">Con &lt;lastmod&gt;</div><div class="lp-sm-v ${sitemapQuality.pct_lastmod>=70?'ok':sitemapQuality.pct_lastmod>=30?'warn':'fail'}">${sitemapQuality.pct_lastmod}%</div></div>
+        <div class="lp-sm-item"><div class="lp-sm-k">Con &lt;priority&gt;</div><div class="lp-sm-v ${sitemapQuality.pct_priority>0?'ok':'warn'}">${sitemapQuality.pct_priority}%</div></div>
+        <div class="lp-sm-item"><div class="lp-sm-k">URLs que responden 200</div><div class="lp-sm-v ${(sitemapQuality.pct_ok_responses||0)>=90?'ok':'warn'}">${sitemapQuality.pct_ok_responses!=null?sitemapQuality.pct_ok_responses+'%':'—'}</div></div>
+      </div>
+      ${sitemapQuality.problems && sitemapQuality.problems.length ? `<div class="lp-sm-problems">${sitemapQuality.problems.map(p=>`<div class="lp-sm-problem">⚠ ${escapeHtml(p)}</div>`).join('')}</div>` : ''}
+    </div>
+    ` : ''}
+
+    <div class="lp-list">
+      ${topLandingPages.map((lp, idx) => {
+        const seoC = scoreColor(lp.mini_seo_score);
+        const aeoC = scoreColor(lp.mini_aeo_score);
+        const typeLabel = {
+          pricing: '💰 Precios',
+          service: '🛠 Servicios',
+          product: '📦 Producto',
+          case_study: '📊 Casos',
+          about: '🏢 Empresa',
+          contact: '✉ Contacto',
+          blog_post: '📝 Blog',
+          other: '📄 Página',
+        }[lp.page_type] || '📄 Página';
+        return `
+        <div class="lp-card">
+          <div class="lp-head">
+            <div class="lp-head-left">
+              <div class="lp-rank">#${idx+1}</div>
+              <div class="lp-meta">
+                <div class="lp-type">${typeLabel}</div>
+                <div class="lp-title">${escapeHtml(lp.title)}</div>
+                <a class="lp-url" href="${escapeHtml(lp.url)}" target="_blank" rel="noopener">${escapeHtml(lp.url)} ↗</a>
+              </div>
+            </div>
+            <div class="lp-head-right">
+              <div class="lp-score-block">
+                <div class="lp-score-val" style="color:${seoC}">${lp.mini_seo_score}</div>
+                <div class="lp-score-lbl">SEO</div>
+              </div>
+              <div class="lp-score-block">
+                <div class="lp-score-val" style="color:${aeoC}">${lp.mini_aeo_score}</div>
+                <div class="lp-score-lbl">AEO</div>
+              </div>
+            </div>
+          </div>
+          <div class="lp-meta-row">
+            <span class="lp-meta-pill">🔗 ${lp.inbound_count} links internos</span>
+            <span class="lp-meta-pill">📝 ${lp.word_count} palabras</span>
+            <span class="lp-meta-pill ${lp.has_h1?'ok':'fail'}">H1 ${lp.has_h1?'✓':'✕'}</span>
+            <span class="lp-meta-pill ${lp.has_canonical?'ok':'fail'}">Canonical ${lp.has_canonical?'✓':'✕'}</span>
+            <span class="lp-meta-pill ${(lp.schema_types||[]).length?'ok':'fail'}">${(lp.schema_types||[]).length?`${lp.schema_types.length} schema${lp.schema_types.length>1?'s':''}`:'Sin schema'}</span>
+          </div>
+          ${lp.top_issues && lp.top_issues.length ? `
+          <div class="lp-issues">
+            <div class="lp-issues-title">Top problemas en esta página${lp.issue_count>lp.top_issues.length?` (${lp.issue_count} totales, mostrando los ${lp.top_issues.length} más importantes)`:''}:</div>
+            ${lp.top_issues.map(i=>`
+              <div class="lp-issue">
+                <span class="iprio ${i.p==='high'?'ph':i.p==='med'?'pm':'pl'}">${i.p==='high'?'CRÍTICO':i.p==='med'?'MEDIO':'BAJO'}</span>
+                <div class="lp-issue-text"><b>${escapeHtml(i.t)}</b>${i.d?` — ${escapeHtml(i.d)}`:''}</div>
+                <span class="icat">${escapeHtml(i.cat)}</span>
+              </div>
+            `).join('')}
+          </div>
+          ` : `<div class="lp-no-issues">✓ Sin problemas críticos detectados en esta página.</div>`}
+        </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+  ` : ''}
+
+  ${stackDetected ? `
+  <!-- STACK DETECTED (Sesión #7) -->
+  <div class="panel" id="panel-stack">
+    <div class="stack-intro">
+      <div class="stack-intro-title">🧰 Stack digital detectado</div>
+      <div class="stack-intro-sub">Herramientas identificadas en el HTML inicial de la home y en robots.txt. Madurez digital del stack: <b style="color:${scoreColor(stackDetected.maturity_score)}">${stackDetected.maturity_score}/100</b>.</div>
+    </div>
+
+    <div class="stack-grid">
+      ${renderStackCategory('💼 CRM / Captación', stackDetected.crm.detected, 'crm', [
+        'HubSpot', 'Pipedrive', 'Salesforce', 'Zoho', 'Calendly'
+      ])}
+      ${renderStackCategory('📊 Analytics & BI', stackDetected.analytics.detected, 'analytics', [
+        'GA4', 'GTM', 'Hotjar / Clarity', 'Mixpanel / Amplitude'
+      ])}
+      ${renderStackCategory('📣 Paid Media / Ads', stackDetected.ads.detected, 'ads', [
+        'Meta Pixel', 'Google Ads', 'LinkedIn Insight', 'TikTok Pixel'
+      ])}
+      ${renderStackCategory('💬 Chatbots / Atención', stackDetected.chat.detected, 'chat', [
+        'Intercom', 'Drift', 'HubSpot Chat', 'Tidio / Tawk / Crisp'
+      ])}
+    </div>
+
+    <!-- AI Bots Policy -->
+    <div class="stack-ai-box">
+      <div class="stack-ai-title">🤖 Política de bots-IA en robots.txt</div>
+      <div class="stack-ai-sub">Quién puede entrar de los bots de IA generativa. Define tu visibilidad en ChatGPT, Claude, Perplexity y Gemini.</div>
+      ${!stackDetected.ai_bots_policy.has_robots ? `
+        <div class="stack-ai-empty">⚠ No hay robots.txt — todos los bots-IA entran por defecto sin restricción explícita.</div>
+      ` : `
+        <div class="stack-ai-summary">
+          <span class="stack-ai-pill ok">${stackDetected.ai_bots_policy.summary.allowed} permitidos</span>
+          <span class="stack-ai-pill fail">${stackDetected.ai_bots_policy.summary.disallowed} bloqueados</span>
+          <span class="stack-ai-pill neutral">${stackDetected.ai_bots_policy.summary.not_specified} sin especificar</span>
+        </div>
+        <div class="stack-ai-bots">
+          ${stackDetected.ai_bots_policy.bots.map(b => `
+            <div class="stack-ai-bot">
+              <span class="stack-ai-bot-name">${escapeHtml(b.name)}</span>
+              <span class="stack-ai-bot-status status-${b.status}">${
+                b.status === 'allowed' ? '✓ permitido' :
+                b.status === 'disallowed' ? '✕ bloqueado' :
+                b.status === 'partial' ? '◐ parcial' :
+                '— sin especificar'
+              }</span>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+
+    ${stackDetected.recommendations && stackDetected.recommendations.length ? `
+    <!-- Recomendaciones -->
+    <div class="stack-recs-box">
+      <div class="stack-recs-title">📌 Oportunidades detectadas</div>
+      ${stackDetected.recommendations.map(r => `
+        <div class="stack-rec">
+          <span class="iprio ${r.severity==='high'?'ph':r.severity==='med'?'pm':'pl'}">${r.severity==='high'?'CRÍTICO':r.severity==='med'?'MEDIO':'BAJO'}</span>
+          <div class="stack-rec-text">
+            <div class="stack-rec-head"><b>${escapeHtml(r.title)}</b> <span class="stack-rec-area">${escapeHtml(r.area)}</span></div>
+            <div class="stack-rec-detail">${escapeHtml(r.detail)}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    ` : ''}
+
+    <div class="stack-note">
+      <b>Cómo leer esto:</b> solo detectamos scripts presentes en el HTML inicial. No vemos lo que carga GTM por dentro ni scripts inyectados dinámicamente. Tener una herramienta instalada no garantiza que esté <i>bien configurada</i>. Lo confirmamos en la llamada de diagnóstico.
+    </div>
+  </div>
+  ` : ''}
 
   ${llmsTxt ? `
   <!-- LLMS.TXT -->
