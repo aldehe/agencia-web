@@ -46,7 +46,8 @@ export default async function handler(req) {
   // ─────────────────────────────────────────────────────────────────
   const psBase = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
   const cats = 'category=performance&category=accessibility&category=best-practices&category=seo';
-  const apiKey = ''; // Sin API key (cuota gratuita anónima ~ 25k/día)
+  // PAGESPEED_API_KEY en Vercel → cuota propia 25k/día. Si no existe, cae a anónima compartida.
+  const apiKey = process.env.PAGESPEED_API_KEY ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
 
   const psMobileUrl = `${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=mobile&${cats}${apiKey}`;
   const psDesktopUrl = `${psBase}?url=${encodeURIComponent(targetUrl)}&strategy=desktop&${cats}${apiKey}`;
