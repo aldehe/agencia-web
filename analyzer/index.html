@@ -58,22 +58,32 @@ header{padding:1.2rem var(--px);border-bottom:1px solid var(--bord);display:flex
 .results-section{display:none;padding:2rem var(--px) 4rem}
 .results-section.active{display:block}
 
-/* SCORE OVERVIEW */
-.score-overview{background:var(--bg2);border:1px solid var(--bord);border-radius:20px;padding:2rem;margin-bottom:1.5rem;display:grid;grid-template-columns:130px 1fr;gap:2.5rem;align-items:center}
-.ring-wrap{position:relative;width:130px;height:130px}
-.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:10}
-.ring-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
-.ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.2rem;font-weight:700;font-family:var(--fm);line-height:1}
-.ring-label{text-align:center;font-size:11px;color:var(--gray);margin-top:4px}
-.overview-right{}
-.overview-url{font-family:var(--fm);font-size:12px;color:var(--ind3);margin-bottom:.5rem;word-break:break-all}
-.overview-verdict{font-size:1.1rem;font-weight:600;margin-bottom:.4rem}
-.overview-summary{font-size:13px;color:var(--gray);line-height:1.65;font-weight:300;margin-bottom:1rem}
-.mini-scores{display:flex;gap:1.5rem;flex-wrap:wrap}
-.mini-s{text-align:center}
-.mini-v{font-family:var(--fm);font-size:1.1rem;font-weight:700;line-height:1;margin-bottom:3px}
-.mini-l{font-size:10px;color:var(--gray2)}
+/* SCORE OVERVIEW — opción 2: donut gigante izquierda + grid 3x2 derecha con sub-donuts */
+.score-overview{background:var(--bg2);border:1px solid var(--bord);border-radius:20px;padding:2rem 2.2rem;margin-bottom:1.5rem;display:grid;grid-template-columns:auto 1fr;gap:2.8rem;align-items:center}
+.score-left{display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.big-ring{position:relative;width:220px;height:220px}
+.big-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.big-ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:14}
+.big-ring-fill{fill:none;stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.big-num-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.big-num{font-size:3.6rem;font-weight:700;font-family:var(--fm);line-height:1}
+.big-num-lbl{font-size:10px;color:var(--gray2);text-transform:uppercase;letter-spacing:.1em;margin-top:6px}
+.score-host{font-family:var(--fm);font-size:13px;color:var(--ind3);word-break:break-all;text-align:center}
+.score-verdict{font-size:1.05rem;font-weight:600;text-align:center}
+.score-summary{font-size:12.5px;color:var(--gray);line-height:1.6;font-weight:300;text-align:center;max-width:240px;margin-top:.2rem}
+.score-right{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mini-kpi{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .2s}
+.mini-kpi:hover{border-color:rgba(99,102,241,.3)}
+.mini-kpi.hi{border-color:rgba(163,230,53,.2);background:rgba(163,230,53,.025)}
+.mini-ring{position:relative;width:74px;height:74px}
+.mini-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mini-ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:7}
+.mini-ring-fill{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.mini-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:1.05rem;font-weight:700;line-height:1}
+.mini-name{font-size:11.5px;color:var(--gray);font-weight:500}
+.mini-rating{font-size:9.5px;color:var(--gray2);text-transform:uppercase;letter-spacing:.06em;font-family:var(--fm)}
+@media(max-width:900px){.score-overview{grid-template-columns:1fr;gap:2rem}.score-right{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.score-right{grid-template-columns:repeat(2,1fr)}.big-ring{width:180px;height:180px}.big-num{font-size:3rem}}
 
 /* WARNING BOX (analyze fallido) */
 .warning-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 18px;margin-bottom:1.2rem}
@@ -635,8 +645,16 @@ function renderResults(d, crawl, ctx) {
     ? Math.round(perfM*0.25 + seoScore*0.3 + aeoScore*0.2 + geoScore*0.1 + fundScore*0.15)
     : Math.round(seoScore*0.4 + aeoScore*0.3 + geoScore*0.15 + fundScore*0.15);
   const gc = scoreColor(global);
-  const circ = 2 * Math.PI * 54;
-  const offset = circ - (global/100)*circ;
+  // Ring grande: r=88 (svg 200x200)
+  const bigCirc = 2 * Math.PI * 88;
+  const bigOffset = bigCirc - (global/100)*bigCirc;
+  // Ring pequeño: r=30 (svg 74x74)
+  const miniCirc = 2 * Math.PI * 30;
+  const miniOffset = (s) => s == null ? miniCirc : miniCirc - (Math.max(0, Math.min(100, s))/100) * miniCirc;
+  // Rating label corto para mini-KPIs
+  const rating = (s) => s == null ? '—' : s >= 80 ? 'Excelente' : s >= 60 ? 'Bueno' : s >= 40 ? 'Aceptable' : 'Pobre';
+  // Render seguro de número (evita pintar "null" literal)
+  const showNum = (s) => s == null ? '—' : s;
   const verdict = global >= 80 ? '✦ Muy buena presencia digital' : global >= 60 ? '⚡ Presencia mejorable' : global >= 40 ? '⚠ Problemas importantes' : '✕ Presencia digital deficiente';
 
   // ── ISSUES priorizados ──
@@ -712,28 +730,90 @@ function renderResults(d, crawl, ctx) {
   ` : ''}
 
   <div class="score-overview">
-    <div>
-      <div class="ring-wrap">
-        <svg viewBox="0 0 120 120">
-          <circle class="ring-bg" cx="60" cy="60" r="54"/>
-          <circle class="ring-fill" cx="60" cy="60" r="54" stroke="${gc}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+    <div class="score-left">
+      <div class="big-ring">
+        <svg viewBox="0 0 200 200">
+          <circle class="big-ring-bg" cx="100" cy="100" r="88"/>
+          <circle class="big-ring-fill" cx="100" cy="100" r="88" stroke="${gc}" stroke-dasharray="${bigCirc.toFixed(2)}" stroke-dashoffset="${bigOffset.toFixed(2)}"/>
         </svg>
-        <div class="ring-num" style="color:${gc}">${global}</div>
+        <div class="big-num-wrap">
+          <div class="big-num" style="color:${gc}">${global}</div>
+          <div class="big-num-lbl">de 100</div>
+        </div>
       </div>
-      <div class="ring-label">Puntuación global</div>
+      <div class="score-host">${escapeHtml(hostname)}</div>
+      <div class="score-verdict" style="color:${gc}">${verdict}</div>
+      <div class="score-summary">${issues.filter(i=>i.p==='high').length} críticos · ${issues.filter(i=>i.p==='med').length} medios · ${issues.filter(i=>i.p==='low').length} menores${crawlSummary?` · ${crawlSummary.pages_analyzed} páginas`:''}</div>
     </div>
-    <div class="overview-right">
-      <div class="overview-url">${escapeHtml(hostname)}</div>
-      <div class="overview-verdict" style="color:${gc}">${verdict}</div>
-      <div class="overview-summary">${issues.filter(i=>i.p==='high').length} problemas críticos · ${issues.filter(i=>i.p==='med').length} medios · ${issues.filter(i=>i.p==='low').length} menores detectados${crawlSummary?` · ${crawlSummary.pages_analyzed} páginas analizadas del sitio`:''}.</div>
-      <div class="mini-scores">
-        ${hasAnalyze ? `<div class="mini-s"><div class="mini-v" style="color:${scoreColor(perfM)}">${perfM}</div><div class="mini-l">Velocidad</div></div>` : ''}
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(seoScore)}">${seoScore}</div><div class="mini-l">SEO</div></div>
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(aeoScore)}">${aeoScore}</div><div class="mini-l">AEO</div></div>
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(geoScore)}">${geoScore}</div><div class="mini-l">GEO</div></div>
-        <div class="mini-s"><div class="mini-v" style="color:${scoreColor(fundScore)}">${fundScore}</div><div class="mini-l">Fundamentos</div></div>
-        ${hasAnalyze ? `<div class="mini-s"><div class="mini-v" style="color:${scoreColor(a11y)}">${a11y}</div><div class="mini-l">Accesibilidad</div></div>` : ''}
+    <div class="score-right">
+      ${hasAnalyze ? `
+      <div class="mini-kpi${perfM != null && perfM >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(perfM)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(perfM).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(perfM)}">${showNum(perfM)}</div>
+        </div>
+        <div class="mini-name">Velocidad</div>
+        <div class="mini-rating">${rating(perfM)}</div>
+      </div>` : ''}
+      <div class="mini-kpi${seoScore != null && seoScore >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(seoScore)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(seoScore).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(seoScore)}">${showNum(seoScore)}</div>
+        </div>
+        <div class="mini-name">SEO</div>
+        <div class="mini-rating">${rating(seoScore)}</div>
       </div>
+      <div class="mini-kpi${aeoScore != null && aeoScore >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(aeoScore)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(aeoScore).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(aeoScore)}">${showNum(aeoScore)}</div>
+        </div>
+        <div class="mini-name">AEO</div>
+        <div class="mini-rating">${rating(aeoScore)}</div>
+      </div>
+      <div class="mini-kpi${geoScore != null && geoScore >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(geoScore)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(geoScore).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(geoScore)}">${showNum(geoScore)}</div>
+        </div>
+        <div class="mini-name">GEO</div>
+        <div class="mini-rating">${rating(geoScore)}</div>
+      </div>
+      <div class="mini-kpi${fundScore != null && fundScore >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(fundScore)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(fundScore).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(fundScore)}">${showNum(fundScore)}</div>
+        </div>
+        <div class="mini-name">Fundamentos</div>
+        <div class="mini-rating">${rating(fundScore)}</div>
+      </div>
+      ${hasAnalyze ? `
+      <div class="mini-kpi${a11y != null && a11y >= 80 ? ' hi' : ''}">
+        <div class="mini-ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="mini-ring-bg" cx="37" cy="37" r="30"/>
+            <circle class="mini-ring-fill" cx="37" cy="37" r="30" stroke="${scoreColor(a11y)}" stroke-dasharray="${miniCirc.toFixed(2)}" stroke-dashoffset="${miniOffset(a11y).toFixed(2)}"/>
+          </svg>
+          <div class="mini-num" style="color:${scoreColor(a11y)}">${showNum(a11y)}</div>
+        </div>
+        <div class="mini-name">Accesibilidad</div>
+        <div class="mini-rating">${rating(a11y)}</div>
+      </div>` : ''}
     </div>
   </div>
 
