@@ -204,6 +204,38 @@ footer{padding:1.8rem var(--px);background:var(--bg);border-top:1px solid var(--
 @media(max-width:1100px){:root{--px:clamp(2.5rem,7vw,6rem)}.hero{grid-template-columns:1fr 1fr;gap:3rem}.analyzer-card{grid-template-columns:1fr;gap:2rem}}
 @media(max-width:900px){:root{--px:clamp(2rem,5vw,4rem)}.hero{grid-template-columns:1fr;padding-top:108px}.metrics{grid-template-columns:1fr;gap:3rem}.pg{grid-template-columns:1fr 1fr;gap:2rem}.pg::before{display:none}.badge.tr{right:0;top:-10px}.badge.bl{left:0;bottom:10px}}
 @media(max-width:600px){:root{--px:1.5rem}.nav-ul li:not(:last-child):not(:nth-last-child(2)){display:none}.nav-login{padding:6px 10px!important;font-size:12px!important}h1{font-size:2.3rem}.sg{grid-template-columns:1fr}.mg{grid-template-columns:1fr}.pg{grid-template-columns:1fr}.cf{flex-direction:column}footer{flex-direction:column;text-align:center}}
+/* MODAL LOGIN */
+.login-modal-backdrop{position:fixed;inset:0;background:rgba(11,18,32,.85);backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+.login-modal-backdrop.open{display:flex}
+.login-modal{background:var(--bg2);border:1px solid var(--bord);border-radius:18px;padding:36px 32px;width:100%;max-width:420px;position:relative;animation:loginIn .25s ease-out}
+@keyframes loginIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.login-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--gray);font-size:22px;cursor:pointer;line-height:1;padding:4px 10px;border-radius:8px;transition:background .15s,color .15s}
+.login-close:hover{background:rgba(255,255,255,.06);color:var(--white)}
+.login-logo{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.login-logo svg{width:28px;height:28px}
+.login-logo span{font-weight:700;font-size:18px;color:var(--white)}
+.login-logo span b{color:var(--lime);font-weight:700}
+.login-title{font-size:1.55rem;font-weight:700;color:var(--white);margin:0 0 6px;letter-spacing:-.5px}
+.login-sub{font-size:13.5px;color:var(--gray);margin-bottom:24px;line-height:1.5}
+.login-field{margin-bottom:14px}
+.login-label{display:block;font-size:11.5px;color:var(--gray);font-weight:500;letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase}
+.login-input{width:100%;background:var(--bg);border:1px solid var(--bord);border-radius:10px;padding:11px 14px;color:var(--white);font-size:14px;font-family:inherit;transition:border-color .15s,background .15s}
+.login-input:focus{outline:none;border-color:var(--ind);background:rgba(99,102,241,.04)}
+.login-input::placeholder{color:var(--gray2)}
+.login-submit{width:100%;background:var(--ind);color:var(--white);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-submit:hover:not(:disabled){background:var(--ind2)}
+.login-submit:disabled{opacity:.55;cursor:not-allowed}
+.login-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:var(--white);border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+.login-submit.loading .login-spinner{display:inline-block}
+.login-submit.loading .login-text{opacity:.7}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;display:none}
+.login-error.show{display:block}
+.login-success{background:rgba(163,230,53,.06);border:1px solid rgba(163,230,53,.22);color:var(--lime2);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;display:none;text-align:center}
+.login-success.show{display:block}
+.login-footer{margin-top:18px;text-align:center;font-size:12px;color:var(--gray2)}
+.login-footer a{color:var(--ind3);text-decoration:none}
+.login-footer a:hover{color:var(--ind2);text-decoration:underline}
 </style>
 </head>
 <body>
@@ -217,7 +249,7 @@ footer{padding:1.8rem var(--px);background:var(--bg);border-top:1px solid var(--
     <li><a href="#servicios">Servicios</a></li>
     <li><a href="#proceso">Proceso</a></li>
     <li><a href="#analyzer">Analizador</a></li>
-    <li><a href="https://app.nexomarketing.io" class="nav-login">Iniciar sesión</a></li>
+    <li><a href="#" onclick="openLoginModal(event)" class="nav-login">Iniciar sesión</a></li>
     <li><a href="#contacto" class="nav-cta">Hablar con nosotros</a></li>
   </ul>
 </nav>
@@ -369,6 +401,137 @@ function goAnalyzer() {
 document.getElementById('heroUrl').addEventListener('keydown', e => {
   if (e.key === 'Enter') goAnalyzer();
 });
+</script>
+
+<!-- ─── MODAL LOGIN ────────────────────────────────────────────── -->
+<div class="login-modal-backdrop" id="loginBackdrop" onclick="closeLoginModal(event)">
+  <div class="login-modal" onclick="event.stopPropagation()">
+    <button class="login-close" onclick="closeLoginModal()" aria-label="Cerrar">×</button>
+    <div class="login-logo">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#4F46E5"/><path d="M7 22L12.5 12L17.5 18L21 13.5L25 16" stroke="#A3E635" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="9.5" r="3" fill="#A3E635"/></svg>
+      <span>Nexo<b> Marketing</b></span>
+    </div>
+    <h2 class="login-title">Accede a tu panel</h2>
+    <p class="login-sub">Entra a GrowOS para ver el informe completo, herramientas de IA y el seguimiento de KPIs en tiempo real.</p>
+
+    <div class="login-error" id="loginError"></div>
+    <div class="login-success" id="loginSuccess">Sesión iniciada. Redirigiendo a tu panel...</div>
+
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="login-field">
+        <label class="login-label" for="loginEmail">Email</label>
+        <input class="login-input" type="email" id="loginEmail" placeholder="tu@empresa.com" required autocomplete="username">
+      </div>
+      <div class="login-field">
+        <label class="login-label" for="loginPassword">Contraseña</label>
+        <input class="login-input" type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button class="login-submit" type="submit" id="loginSubmit">
+        <span class="login-text">Entrar</span>
+        <span class="login-spinner"></span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      ¿No tienes cuenta? <a href="#contacto" onclick="closeLoginModal()">Contacta con nosotros</a>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase JS desde CDN (mantiene convención "cero deps npm" del repo) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+// ─── Config Supabase (ANON_KEY es pública por diseño, protegida por RLS) ───
+const SUPABASE_URL = 'https://kzhbyltkmrpyxwxxwodv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6aGJ5bHRrbXJweXh3eHh3b2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg5MTEsImV4cCI6MjA5MzAxNDkxMX0.a2BVqewKjzEduoGNrSLnG3XD5wWGI53PpzvhXYQjXD4';
+const APP_URL = 'https://app.nexomarketing.io';
+
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storage: window.localStorage }
+});
+
+// ─── Modal control ───────────────────────────────────────────
+function openLoginModal(ev) {
+  if (ev) ev.preventDefault();
+  document.getElementById('loginBackdrop').classList.add('open');
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('loginSuccess').classList.remove('show');
+  setTimeout(() => document.getElementById('loginEmail').focus(), 50);
+}
+function closeLoginModal(ev) {
+  if (ev && ev.target.id !== 'loginBackdrop' && !ev.currentTarget.classList?.contains('login-close')) {
+    // sólo cierra si click en backdrop o en boton close
+  }
+  document.getElementById('loginBackdrop').classList.remove('open');
+}
+
+// ─── Login handler ───────────────────────────────────────────
+async function doLogin(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById('loginSubmit');
+  const errBox = document.getElementById('loginError');
+  const okBox = document.getElementById('loginSuccess');
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  errBox.classList.remove('show');
+  okBox.classList.remove('show');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data.session) throw new Error('No se pudo establecer la sesión');
+
+    okBox.classList.add('show');
+    // Pasar tokens al subdominio vía URL hash (se limpian al cargar)
+    const tk = encodeURIComponent(data.session.access_token);
+    const rf = encodeURIComponent(data.session.refresh_token);
+    setTimeout(() => {
+      window.location.href = `${APP_URL}/#access_token=${tk}&refresh_token=${rf}`;
+    }, 700);
+    return false;
+  } catch (err) {
+    errBox.textContent = traduceError(err.message || 'Error desconocido');
+    errBox.classList.add('show');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    return false;
+  }
+}
+
+function traduceError(msg) {
+  const m = String(msg).toLowerCase();
+  if (m.includes('invalid login') || m.includes('invalid credentials')) return 'Email o contraseña incorrectos.';
+  if (m.includes('email not confirmed')) return 'Email pendiente de confirmar. Revisa tu bandeja.';
+  if (m.includes('too many') || m.includes('rate limit')) return 'Demasiados intentos. Espera unos minutos.';
+  if (m.includes('network') || m.includes('fetch')) return 'Sin conexión. Revisa tu internet.';
+  return msg;
+}
+
+// Cerrar modal con Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const bd = document.getElementById('loginBackdrop');
+    if (bd && bd.classList.contains('open')) bd.classList.remove('open');
+  }
+});
+
+// Si llega ya logueado al home, mostrar "Mi panel" en lugar de "Iniciar sesión"
+(async () => {
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    if (session) {
+      const navBtn = document.querySelector('.nav-login');
+      if (navBtn) {
+        navBtn.textContent = 'Mi panel';
+        navBtn.removeAttribute('onclick');
+        navBtn.setAttribute('href', APP_URL);
+      }
+    }
+  } catch (e) { /* silent */ }
+})();
 </script>
 </body>
 </html>
