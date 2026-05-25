@@ -1,0 +1,3 @@
+# Reports con datos de clientes — NUNCA subir
+reports/
+*.local.json
