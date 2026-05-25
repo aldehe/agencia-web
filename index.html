@@ -536,5 +536,14 @@ document.addEventListener('keydown', (e) => {
   } catch (e) { /* silent */ }
 })();
 </script>
+<!-- Bot detector pixel -->
+<script>
+(function(){
+  var p = document.createElement("img");
+  p.src = "/api/bot-logger?path=" + encodeURIComponent(window.location.pathname) + "&url=" + encodeURIComponent(window.location.href);
+  p.style.display = "none";
+  document.body.appendChild(p);
+})();
+</script>
 </body>
 </html>
