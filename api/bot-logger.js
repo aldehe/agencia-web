@@ -13,16 +13,16 @@ const AI_BOTS = [
   { k: 'diffbot',            n: 'ai_diffbot' },
   { k: 'meta-externalagent', n: 'ai_meta' },
   { k: 'youbot',             n: 'ai_you' },
+  { k: 'googlebot',          n: 'seo_google' },
+  { k: 'bingbot',            n: 'seo_bing' },
+  { k: 'yandexbot',          n: 'seo_yandex' },
+  { k: 'duckduckbot',        n: 'seo_duckduck' },
 ];
-const SEO_BOTS  = ['googlebot','bingbot','slurp','duckduckbot','yandexbot','applebot','msnbot'];
-const MALICIOUS = ['scrapy','python-requests','python-urllib','headlesschrome','phantomjs','selenium','puppeteer','playwright'];
 
 function detectBot(ua) {
   if (!ua) return null;
   const u = ua.toLowerCase();
-  for (const b of AI_BOTS)   { if (u.includes(b.k)) return b.n; }
-  for (const b of SEO_BOTS)   { if (u.includes(b))  return 'seo_' + b; }
-  for (const b of MALICIOUS)  { if (u.includes(b))  return 'malicious'; }
+  for (const b of AI_BOTS) { if (u.includes(b.k)) return b.n; }
   if (/bot[\/;]|crawler|spider/.test(u)) return 'unknown_bot';
   return null;
 }
@@ -38,22 +38,27 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Aceptar ua y bot tanto del header como del query param (llamado desde middleware)
-  const ua      = req.query.ua  || req.headers['user-agent'] || '';
-  const botType = req.query.bot || detectBot(ua);
-  const path    = req.query.path || '/';
+  // Detectar bot desde el User-Agent real de la request
+  const ua      = req.headers['user-agent'] || '';
+  const botType = detectBot(ua);
+  const path    = req.query.path || req.url?.split('?')[0] || '/';
   const url     = req.query.url  || '';
   const ip      = req.headers['x-forwarded-for'] || 'unknown';
+
+  console.log('bot-logger called | UA:', ua.slice(0, 80), '| bot:', botType);
 
   if (!botType) return sendPixel(res);
 
   try {
-    const supabase  = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+    const supabase  = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
     const sessionId = require('crypto').randomUUID();
     const now       = new Date().toISOString();
     const tenantId  = process.env.DEFAULT_TENANT_ID || null;
 
-    await Promise.all([
+    const [s, e] = await Promise.all([
       supabase.from('sessions').insert({
         id:            sessionId,
         tenant_id:     tenantId,
@@ -79,7 +84,10 @@ module.exports = async function handler(req, res) {
       }),
     ]);
 
-    console.log('✅ Bot guardado:', botType, path);
+    if (s.error) console.error('session error:', s.error.message);
+    if (e.error) console.error('event error:', e.error.message);
+    else console.log('✅ Bot guardado:', botType, path);
+
   } catch (err) {
     console.error('bot-logger error:', err.message);
   }
