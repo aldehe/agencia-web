@@ -1,20 +1,33 @@
-# Agency — Revenue Operations & Analytics
+# Nexo Marketing
 
-> Agencia especializada en Revenue Operations, Analytics y Automatización con IA para empresas B2B en España y Latam.
+> Agencia de Revenue Operations, analítica y automatización con IA para empresas B2B en España y Latinoamérica. Con sede en Barcelona.
 
-## Servicios
+URL: https://nexomarketing.io/
 
-- CRM & Revenue Operations: Implantación y optimización de HubSpot, Pipedrive y Salesforce
-- Analytics & BI: Dashboards ejecutivos en Power BI, GA4 avanzado y arquitectura de datos en Supabase
-- IA & Automatización: Agentes con LLMs, flujos Make/n8n e integraciones API
-- SEO/AEO/GEO: Posicionamiento técnico en buscadores y motores de IA
-- Paid Media: Google Ads, Meta Ads y LinkedIn Ads conectados a CRM
+## Qué hacemos
+
+Cerramos las fugas entre etapas del embudo comercial B2B. El recorrido que analizamos es
+visitas → leads → cualificados → clientes, y trabajamos sobre los tres tramos que hay entre medias.
+
+- **Atraer**: SEO técnico, AEO y GEO (visibilidad en ChatGPT, Gemini y Perplexity), y Paid Media en Google, Meta y LinkedIn conectado al CRM.
+- **Convertir**: implantación y optimización de CRM (HubSpot, Pipedrive, Salesforce) con ciclo de vida, lead scoring y workflows; automatización con agentes LLM y flujos en Make y n8n.
+- **Medir y sostener**: atribución multicanal, cuadros de mando en Power BI y arquitectura de datos en Supabase; diagnóstico de madurez digital, hoja de ruta y formación del equipo.
+
+## Herramienta gratuita
+
+- [Analizador SEO · AEO · GEO](https://nexomarketing.io/analyzer): analiza cualquier dominio y devuelve velocidad real medida con Google PageSpeed, SEO técnico, validación de datos estructurados JSON-LD, presencia de llms.txt, señales de posicionamiento local y detección del stack digital instalado. Sin registro y sin coste.
+
+## Cómo trabajamos
+
+1. Diagnóstico gratuito, entregado en 48 horas. El informe es del cliente aunque no continúe.
+2. Implantación del sistema en unas 4 semanas, con el equipo del cliente dentro del proceso.
+3. Optimización mensual continua para quien quiera mantenerla.
 
 ## Mercado
 
-España y Latinoamérica. Especialistas en PYMEs de 10-250 empleados.
+España y Latinoamérica. Especializados en pymes de 10 a 250 empleados.
 
 ## Contacto
 
 - Email: hola@agencia.ai
-- Web: https://agencia.ai
+- Ubicación: Barcelona, España
